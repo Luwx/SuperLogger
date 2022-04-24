@@ -1,0 +1,492 @@
+{
+    "loggable": "Loggable",
+    "loggables": "Loggables",
+    "myLoggables": "My loggables",
+    "templates": "Templates",
+    "loggableTemplates": "Loggable templates",
+    "loggableTemplatesDescription": "A set of preconfigured loggables",
+    "addLoggable": "Add Loggable",
+    "createNewLoggable": "Create new Loggable",
+    "deleteLoggable": "DELETE LOGGABLE",
+    "@deleteLoggable": {
+        "description": "delete loggable (dangerous action)"
+    },
+    "noLoggables": "No Loggables",
+    "loggableNotFound": "Loggable not found",
+    "noData": "No Data",
+    "noEvents": "No events",
+    "noEntries": "No entries",
+    "noEventsToday": "No events today",
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "time": "Time",
+    "@time": {
+        "description": "The time of day"
+    },
+    "dateAndTime": "Date and time",
+    "statistics": "Statistics",
+    "timeline": "Timeline",
+    "dayPeriod": "Day period",
+
+    "history": "History",
+    "@history": {
+        "description": "the history of events"
+    },
+    
+    "note": "Note",
+    "comment": "Comment",
+    "writeANote": "Write a note...",
+
+    "noEventSelected": "No event selected",
+
+    "deletedLogsMessage" : "{count, plural, =1{1 event deleted} other{{count} events deleted}}",
+    "@deletedLogsMessage" : {
+        "description" : "deleted logs message in snackbar",
+        "placeholders": {
+            "count": {}
+        }
+    },
+
+    "entryAmountInformation" : "{count, plural, =1{1 entry} other{{count} entries}}", 
+    "@entryAmountInformation" : {
+        "placeholders": {
+            "count": {}
+        }
+    },
+
+    "entryDaysInformation" : "in {daysCount, plural, =1{1 day} other {{daysCount} days}}", 
+    "@entryDaysInformation" : {
+        "placeholders": {
+            "daysCount": {}
+        }
+    },
+
+    "entryWeekInformation" : "in {weekCount, plural, =1{1 week} other {{weekCount} weeks}}", 
+    "@entryWeekInformation" : {
+        "placeholders": {
+            "weekCount": {}
+        }
+    },
+
+    "entryMonthInformation" : "in {monthCount, plural, =1{1 month} other {{monthCount} months}}", 
+    "@entryMonthInformation" : {
+        "placeholders": {
+            "monthCount": {}
+        }
+    },
+
+    "entryYearInformation" : "in {yearCount, plural, =1{1 year} other {{yearCount} years}}", 
+    "@entryYearInformation" : {
+        "placeholders": {
+            "yearCount": {}
+        }
+    },
+
+    "xDaysAgo": "{count, plural, =1{1 day ago} other{{count} days ago}}",
+    "@xDaysAgo": {
+        "placeholders": {
+            "count": {}
+        }
+    },
+    
+    "xHoursAgo": "{count, plural, =1{1 hour ago} other{{count} hours ago}}",
+    "@xHoursAgo": {
+        "placeholders": {
+            "count": {}
+        }
+    },
+
+    "xMinutesAgo": "{count, plural, =1{1 minute ago} other{{count} minutes ago}}",
+    "@xMinutesAgo": {
+        "placeholders": {
+            "count": {}
+        }
+    },
+
+    "xSecondsAgo": "{count, plural, =1{1 second ago} other{{count} seconds ago}}",
+    "@xSecondsAgo": {
+        "placeholders": {
+            "count": {}
+        }
+    },
+
+    "seconds": "seconds",
+    "minutes": "minutes",
+    "hours": "hours",
+
+
+    "loggableTitle": "Title",
+    "@loggableTitle": {
+        "description": "The loggable title"
+    },
+
+    "chooseAName": "Choose a name",
+    "maxEntriesPerDay": "Max entries per day",
+    "showMinusButton": "Show Minus button",
+    "pinned": "Pinned",
+    "amount": "amount",
+    "values": "Values",
+    "value": "Value",
+    "numericValue": "Numeric value",
+
+    "newLoggableBadge": "New",
+    "@newLoggableBadge": {
+        "description": "Displayed when a new loggable is created"
+    },
+
+    "ascending": "Ascending",
+    "@ascending": {
+        "description": "Sorting order ascending"
+    },
+    "descending": "Descending",
+    "@descending": {
+        "description": "Sorting order descending"
+    },
+
+
+    "amountOfEntries": "Amount of entries",
+    "greaterThan": "Greater than",
+    "lessThan": "Less than",
+    "between": "Between",
+    "equalTo": "Equal to",
+    "showGreaterThan": "Show values greater than",
+    "showSmallerThan": "Show values smaller than",
+    "showEqualTo": "Show values equal to",
+    "showValuesInBetween": "Show values in between",
+    "invalidValues": "Invalid values",
+    "error": "Error",
+
+
+
+    "sort": "Sort",
+    "@sort": {
+        "description": "Label of the sorting toggle button"
+    },
+    "filter": "Filter",
+    "@filter": {
+        "description": "Label of the filter toggle button"
+    },
+    "addFilter": "Add filter",
+    "active": "Active",
+    "@active": {
+        "description": "Label indicating that an element is active"
+    },
+
+    "increase": "Increase",
+    "decrease": "Decrease",
+    "cumulative": "Cumulative",
+
+    "search": "Search",
+
+    "editEntry": "Edit entry",
+
+    "warning": "Warning",
+
+    "yes": "Yes",
+    "no": "No",
+    "ok": "Ok",
+    "cancel": "Cancel",
+    "undo": "Undo",
+    "save": "Save",
+    "confirm": "Confirm",
+    "continueLabel": "continue",
+    "create": "Create",
+    "delete": "Delete",
+    "export": "Export",
+    "exportAll": "Export all",
+    "editValue": "Edit value",
+    "newEntry": "New Entry",
+    "newValue": "New value",
+    "more": "More",
+    "pinLoggable": "Pin Loggable",
+    "unpinLoggable": "Unpin Loggable",
+    "configureLoggable": "Configure Loggable",
+    "appSettings": "App settings",
+    "chooseAction": "Choose an action",
+    "pickNewDate": "Pick new date",
+
+
+    "prefix": "Prefix",
+    "suffix": "Suffix",
+
+
+    "counter": "Counter",
+    "@counter": {
+        "description": "The counter loggable"
+    },
+    "positiveValuesOnly": "Positive values only",
+    "unitary": "Unitary",
+    "minusButtonBehavior": "Minus button action",
+    "counterMinusButtonBehaviorDeleteLastEntry": "Delete last entry",
+    "counterMinusButtonBehaviorAddMinusOne": "Add minus one",
+    "addButtonBehavior": "Add button action",    
+    "addButtonBehaviorDescription": "Valid for non unitary counters",
+    "counterAddButtonBehaviorAddOne": "Add one",
+    "counterAddButtonBehaviorShowCustomValues": "Show custom values",
+    "counterAddButtonBehaviorDefaultActionLabel": "Default (add one)",
+    "counterCustomValues": "Custom values",
+    "counterErrorOcurred": "An ERROR has ocurred",
+    "counterLogNotFound": "Entry not found",
+
+
+    "number": "Number",
+    "@number": {
+        "description": "The number loggable"
+    },
+    "minValue": "Min value",
+    "maxValue": "Max value",
+    "showTotalCount": "Show daily total count",
+    "showTotalCountDescription": "The calculated daily total count will be shown alongside the event's value",
+    "useSliderControlLabel": "Use slider",
+    "useSliderControlDescription": "Available when min and max values are close",
+    "allowFractionalValues": "Allow fractional values",
+    "valuesCannotBeEqual": "Values cannot be equal",
+    "minGreaterThanMax": "Min greater than max",
+    "maxSmallerThanMin": "Max smaller than min",
+    "totalValue": "Total value",
+
+    "text": "Text",
+    "@text": {
+        "description": "The Text loggable"
+    },
+    "addText": "Add text",
+
+
+    "duration": "Duration",
+    "@duration": {
+        "description": "The duration loggable"
+    },
+    "showTotalDurationOfDay": "Show total duration of day",
+    "pickDurationLabel": "Pick duration",
+    "canBePaused": "Show Pause button",
+    "usePlayStopButton": "Use Play/Stop button",
+    "durationRunningLabel": "Running...",
+    "durationPausedLogLabel": "(paused)",
+
+
+    "internetImage": "Internet Image",
+    "enterImageUrlLabel": "Enter image URL",
+
+    "image": "Image",
+    "imageSourcePrompt": "Choose the image source",
+    "addImages": "Add images",
+    "changeImage": "Change",
+    "removeImage": "Remove",
+    "imageSourceCamera": "Camera",
+    "imageSourceGallery": "Gallery",
+    "imageNotFound": "Image not found :(",
+    "noImageSelected": "No image selected",
+    "imageNameLabel": "Label",
+
+
+    "recording": "Recording",
+    "@recording": {
+        "description": "The Recording Loggable"
+    },
+    "newRecording": "New recording",
+
+
+    "choice": "Choice",
+    "@choice": {
+        "description": "The Choice Loggable"
+    },
+
+
+    "options": "Options",
+    "addOption": "Add option",
+    "selectAnOption": "Select an option",
+    "selectedChoice": "Selected option",
+    "choiceLoggableType": "Choice loggable type",
+    "choiceTypeChangeWarning": "Changing the type will erase all existing options, are you sure you want to continue?",
+    "optionNotFoundErrorText" : "OPTION NOT FOUND",
+    "addMetadataProperty": "Add property",
+    "metadata": "Metadata",
+    "ranked": "Ranked",
+
+
+    "composite": "Composite",
+    "@composite": {
+        "description": "The Composite Loggable"
+    },
+    "chooseLoggableType": "Choose a loggable type",
+    "chooseExistingLoggable": "Choose an existing loggable",
+    "createSubLoggable": "Create sub cateogory",
+    "selectLoggable": "Select a loggable",
+    "calculation": "Calculation",
+    "calculations": "Calculations",
+    "anotherCalculation": "Another calculation",
+    "selectCalculation": "Select a calculation",
+    "addCalculation": "Add calculation",
+    "newCalculation": "New Calculation",
+    "multipleEntries": "Multiple entries",
+    "dismissLoggable": "Dismiss",
+    "dismissible": "Dismissible",
+    "hiddenByDefault": "Hidden by default",
+    "hideTitle": "Hide title",
+    "loggableConfiguration": "Loggable configuration",
+    "showSideBySide": "Show side by side",
+    "delimiter": "Delimiter",
+    "newEntryOf": "New entry of {loggable}",
+    "@newEntryOf" : {
+        "placeholders": {
+            "loggable": {}
+        }
+    },
+
+    "premium":"Premium",
+    "freePlan": "Free plan",
+    "getPremiumDialogTitle": "Premium required",
+    "upgrade": "Upgrade",
+    "maxLoggableAmountReached": "You reached the maximum amount of loggables ({count}) for the free version.\nUpgrade to premium to get unlimited loggables.",
+    "@maxLoggableAmountReached" : {
+        "placeholders": {
+            "count": {}
+        }
+    },
+    "maxCompositeLoggableAmountReached": "You reached the maximum amount of composite loggables ({count}) for the free version.\nUpgrade to premium to get unlimited loggables.",
+    "@maxCompositeLoggableAmountReached" : {
+        "placeholders": {
+            "count": {}
+        }
+    },
+    "maxCompositeLoggableAndLoggableAmountReached": "You reached the maximum amount of loggables ({maxLoggablesAmount}) and composite loggables ({maxCompositeAmount}) for the free version.\nUpgrade to premium to get unlimited loggables.",
+    "@maxCompositeLoggableAndLoggableAmountReached" : {
+        "placeholders": {
+            "maxLoggablesAmount": {},
+            "maxCompositeAmount": {}
+        }
+    },
+    "maxLoggablesAndCompositeAmountExceded" : "You have more than {maxLoggablesAmount} total loggables and {maxCompositeAmount} composite loggables, to continue using this feature, reduce the total amount of loggables or upgrade to premium.", 
+    "@maxLoggablesAndCompositeAmountExceded" : {
+        "placeholders": {
+            "maxLoggablesAmount": {},
+            "maxCompositeAmount": {}
+        }
+    },
+    "maxLoggablesAmountExceded": "You have more than {maxLoggablesAmount} total loggables, to continue using this feature, reduce the total amount of loggables or upgrade to premium.",
+    "@maxLoggablesAmountExceded" : {
+        "placeholders": {
+            "maxLoggablesAmount": {}
+        }
+    },
+    "maxCompositeAmountExceded": "You have more than {maxCompositeAmount} composite loggables, to continue using this feature, reduce the total amount of composite loggables or upgrade to premium.",
+    "@maxCompositeAmountExceded" : {
+        "placeholders": {
+            "maxCompositeAmount": {}
+        }
+    },
+    "defaultPremiumUpgradeLabel": "Upgrade to premium and get unlimited loggables",
+    "premiumSubscriptionMainText": "With Premium you can have an unlimited number of loggables with all functionallity available.",
+    "subscriptionPlans": "Subscription plans",
+    "noPlans": "No plans",
+    "premiumMonthlyLabel": "Premium - Monthly",
+    "premiumYearlyLabel": "Premium - Yearly",
+    "premiumLifetimeLabel": "Premium - Lifetime",
+    "freeLimit": "Free limit",
+
+
+
+    "signIn": "Sign in",
+    "signInWithGoogle": "Sign in with Google",
+    "createAccount": "Create account",
+    "email": "Email",
+    "password": "Password",
+    "confirmPassword": "Password confirmation",
+    "signInToContinue": "Sign in to continue",
+    "createNewAccountButtonLabel": "Create new account...",
+    "useExistingAccount": "Use existing account",
+    "signUpWithGoogle": "Sign up with Google",
+    "createNewAccount": "Create new account",
+    "invalidEmailAddressError": "Invalid email address",
+    "passwordIsTooShortError": "Password is too short",
+    "enterThePassword": "Enter the password",
+
+    "moodLog": "Mood",
+    "electricEnergyConsumption": "Electric energy consumption",
+    "workout": "Workout",
+    "exerciseName": "Exercise name",
+    "deadlift": "Deadlift",
+    "squat": "Squat",
+    "benchPress": "Bench Press",
+    "reps": "Reps",
+    "@reps": {
+        "description": "Short form of 'repetitions'"
+    },
+    "weight": "Weight",
+    "sets": "Sets",
+    "exercises": "Exercises",
+    "low": "Low",
+    "medium": "Medium",
+    "high": "High",
+    "exhaustion": "Exhaustion",
+    "sleepLog": "Sleep Log",
+    "bad": "Bad",
+    "@bad": {
+        "description": "As is bad quality"
+    },
+    "okay": "Okay",
+    "good": "Good",
+    "awesome": "Awesome",
+    "overallQuality": "Overall Quality",
+    "normal": "Normal",
+    "weird": "Weird",
+    "nightmare": "Nightmare",
+    "other": "Other",
+    "dreamType": "Dream Type",
+    "description": "Description",
+    "dreams": "Dreams",
+    "weatherLog": "Weather",
+    "sunnyClearSky": "Sunny clear sky",
+    "partlyCloudy": "Partly cloudy",
+    "cloudy": "Cloudy",
+    "rainy": "Rainy",
+    "stormy": "Stormy",
+    "foggy": "Foggy",
+    "weatherType": "Weather Type",
+    "temperature": "Temperature",
+    "north": "North",
+    "west": "West",
+    "south": "South",
+    "east": "East",
+    "direction": "Direction",
+    "speed": "Speed",
+    "wind": "Wind",
+    "fuelLog": "Fuel",
+    "distance": "Distance",
+    "litters": "Litters",
+    "totalPrice": "Total price",
+    "fuel": "Fuel",
+    "location": "Location",
+    "spendingLog": "SpendingLog",
+
+    "housing": "Housing",
+    "transportation":"Transportation",
+    "food":"Food",
+    "utilities":"Utilities",
+    "insurance":"Insurance",
+    "healthcare":"Healthcare",
+    "investment":"Investment",
+    "payments":"Payments",
+    "personalSpending":"Personal Spending",
+    "entertainment":"Entertainment",
+    "category": "Category",
+    "itemName": "Item name",
+    "price": "Price",
+
+    "bloodPressureAndHeartRate": "Blood pressure and Heart rate",
+    "systolic": "Systolic",
+    "diastolic": "Diastolic",
+    "bpm": "bpm",
+    "@bpm": {
+        "description": "Short of 'beats per minute'"
+    },
+    "tinnitusBurst": "Tinnitus burst",
+    "rightEar": "Right ear",
+    "leftEar": "Left ear",
+    "bothEars": "Both ears",
+    "heartRate": "Heart rate",
+    "ear": "Ear",
+    "intensity": "Intensity (1 - 10)",
+    "frequency": "Frequency"
+
+}
