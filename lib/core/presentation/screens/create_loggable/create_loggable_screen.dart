@@ -119,10 +119,13 @@ class _CreateLoggableScreenState extends State<CreateLoggableScreen>
       tags: <LoggableTag>[].lock,
       id: id,
       loggableConfig: LoggableProperties(
-          generalConfig: loggableProperties,
-          mainCardConfig: const EmptyProperty(),
-          aggregationConfig: const EmptyProperty()),
+        generalConfig: loggableProperties,
+        mainCardConfig: const EmptyProperty(),
+        aggregationConfig: const EmptyProperty(),
+      ),
     );
+
+    
 
     if (shouldUpdate) {
       setState(() {
@@ -174,14 +177,13 @@ class _CreateLoggableScreenState extends State<CreateLoggableScreen>
             title: Text(
                 widget.loggable == null ? context.l10n.createNewLoggable : widget.loggable!.title),
             actions: <Widget>[
-
-                TextButton(
-                  style: TextButton.styleFrom(
-                    primary: Theme.of(context).appBarTheme.foregroundColor,
-                  ),
-                  child: Text(widget.loggable == null ? context.l10n.create : context.l10n.save),
-                  onPressed: onSavePressed,
-                )
+              TextButton(
+                style: TextButton.styleFrom(
+                  primary: Theme.of(context).appBarTheme.foregroundColor,
+                ),
+                child: Text(widget.loggable == null ? context.l10n.create : context.l10n.save),
+                onPressed: onSavePressed,
+              )
             ]),
         body: Stack(
           children: [

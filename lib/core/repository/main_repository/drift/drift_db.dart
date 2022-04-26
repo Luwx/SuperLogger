@@ -63,8 +63,9 @@ class LoggableWithTags {
 
   factory LoggableWithTags.fromLoggable(Loggable loggable) {
     return LoggableWithTags(
-        loggable: LoggableConverver.driftFromBaseLoggable(loggable),
-        tags: loggable.tags.map((tag) => Tag(id: tag.id, name: tag.name)).toList());
+      loggable: LoggableConverver.driftFromBaseLoggable(loggable),
+      tags: loggable.tags.map((tag) => Tag(id: tag.id, name: tag.name)).toList(),
+    );
   }
 
   Map<String, dynamic> toJson() {

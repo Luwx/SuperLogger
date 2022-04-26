@@ -8,7 +8,7 @@ import 'package:super_logger/core/repository/main_repository/drift/drift_db.dart
 class Loggables extends Table {
   TextColumn get id => text()();
   TextColumn get loggableSettings => text()();
-  TextColumn get loggableProperties => text()();
+  TextColumn get loggableConfig => text()();
   TextColumn get title => text()();
   DateTimeColumn get creationDate => dateTime()();
   TextColumn get type => text().withLength(max: 30)();
@@ -23,7 +23,7 @@ class LoggableConverver {
     return {
       'id': loggable.id,
       'loggableSettings': jsonDecode(loggable.loggableSettings),
-      'loggableProperties': jsonDecode(loggable.loggableProperties),
+      'loggableConfig': jsonDecode(loggable.loggableConfig),
       'title': loggable.title,
       'creationDate': loggable.creationDate.millisecondsSinceEpoch,
       'type': loggable.type,
@@ -34,7 +34,7 @@ class LoggableConverver {
     return LoggableEntry(
       id: loggable.id,
       loggableSettings: jsonEncode(loggable.loggableSettings.toJson()),
-      loggableProperties: jsonEncode(loggable.loggableProperties.toJson()),
+      loggableConfig: jsonEncode(loggable.loggableConfig.toJson()),
       title: loggable.title,
       creationDate: loggable.creationDate,
       type: loggable.type.toString(),

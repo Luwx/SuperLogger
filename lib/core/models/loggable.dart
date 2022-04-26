@@ -94,9 +94,10 @@ class LoggableProperties {
       required MappableMapper mainCardMapper,
       required MappableMapper aggregationMapper}) {
     return LoggableProperties(
-        generalConfig: generalMapper(json),
-        mainCardConfig: mainCardMapper(json),
-        aggregationConfig: aggregationMapper(json));
+      generalConfig: generalMapper(json['generalConfig']),
+      mainCardConfig: mainCardMapper(json['mainCardConfig']),
+      aggregationConfig: aggregationMapper(json['aggregationConfig']),
+    );
   }
 
   LoggableProperties copyWith({
