@@ -1,16 +1,16 @@
 import 'package:flutter/widgets.dart';
+
 import 'package:super_logger/core/main_factory.dart';
-import 'package:super_logger/core/models/loggable.dart';
 import 'package:super_logger/core/models/datelog.dart';
 import 'package:super_logger/core/models/filters.dart';
 import 'package:super_logger/core/models/log.dart';
-import 'package:super_logger/core/presentation/screens/loggable_details/loggable_details_screen.dart';
+import 'package:super_logger/core/models/loggable.dart';
 import 'package:super_logger/core/presentation/screens/loggable_details/sort_log_list_form.dart';
 import 'package:super_logger/core/repository/main_repository/main_repository.dart';
 import 'package:super_logger/locator.dart';
 import 'package:super_logger/utils/extensions.dart';
 
-abstract class LoggableController<T extends Object> extends ChangeNotifier {
+class LoggableController<T extends Object> extends ChangeNotifier {
   LoggableController({required Loggable loggable, required this.repository}) : _loggable = loggable;
 
   @protected
@@ -80,16 +80,17 @@ abstract class LoggableController<T extends Object> extends ChangeNotifier {
     return Future.value(_cachedDateLog);
   }
 
-  Stream<DateLog<T>?>? _currentDateLog;
-  Stream<DateLog<T>?> get currentDateLog {
-    assert(_currentDateLog != null, "current dateLog stream is not set up");
-    return _currentDateLog!;
+  //Stream<DateLog<T>?>? _currentDateLog;
+  Stream<DateLog<T>?> dateLogStreamForDate(DateTime date) {
+    //assert(_currentDateLog != null, "current dateLog stream is not set up");
+    return repository.getDateLogStreamForDate<T>(loggable, date.asISO8601);
+    //return _currentDateLog!;
   }
 
-  void setupDateLogStream(DateTime date) {
-    _currentDateLog = repository.getDateLogStreamForDate<T>(loggable, date.asISO8601);
-    onSetupDateLogStream();
-  }
+  // void setupDateLogStream(DateTime date) {
+  //   _currentDateLog = repository.getDateLogStreamForDate<T>(loggable, date.asISO8601);
+  //   onSetupDateLogStream();
+  // }
 
   // extending classes will use this to listen to the current date log, if needed
   //@Deprecated("")
@@ -153,7 +154,7 @@ abstract class LoggableController<T extends Object> extends ChangeNotifier {
       onSetupDateLogListStream();
     }
 
-      return _allLogsStream!;
+    return _allLogsStream!;
   }
 
   //! was useful when using firebase, for some reason the stream would not load a second time, so some caching was need
@@ -230,4 +231,14 @@ abstract class LoggableController<T extends Object> extends ChangeNotifier {
     _loggable = newLoggable;
     setIdle();
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+
+    return other is LoggableController<T> && other._loggable == _loggable;
+  }
+
+  @override
+  int get hashCode => _loggable.hashCode;
 }

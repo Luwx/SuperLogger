@@ -11,6 +11,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 //import 'package:local_hero/local_hero.dart';
 
 //import 'package:google_fonts/google_fonts.dart';
@@ -21,37 +22,34 @@ import 'package:super_logger/core/presentation/screens/loggable_list/loggable_li
 import 'package:super_logger/core/presentation/screens/timeline/timeline_screen.dart';
 import 'package:super_logger/l10n/l10n.dart';
 
-
 import 'package:flex_color_scheme/flex_color_scheme.dart';
 
 import 'locator.dart' as locator;
 
 void main() async {
+  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+    statusBarColor: Colors.transparent,
+  ));
+
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await Firebase.initializeApp();
+
+  // Pass all uncaught errors from the framework to Crashlytics.
+  FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterError;
+
+  //timeDilation = 10.0;
+
+  locator.init();
+
   runZonedGuarded(
-    () async {
-      SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-        statusBarColor: Colors.transparent,
-      ));
-
-      WidgetsFlutterBinding.ensureInitialized();
-
-      await Firebase.initializeApp();
-
-      // Pass all uncaught errors from the framework to Crashlytics.
-      FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterError;
-
-      //timeDilation = 10.0;
-
-      locator.init();
-
-      runApp(MyApp());
-    },
+    () => runApp(ProviderScope(child: SuperLogger())),
     (error, stack) => FirebaseCrashlytics.instance.recordError(error, stack),
   );
 }
 
-class MyApp extends StatelessWidget {
-  MyApp({Key? key}) : super(key: key);
+class SuperLogger extends StatelessWidget {
+  SuperLogger({Key? key}) : super(key: key);
   final _router = GoRouter(
     routes: [
       GoRoute(

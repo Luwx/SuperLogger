@@ -1,7 +1,19 @@
+import 'package:collection/collection.dart';
+
 import 'package:super_logger/core/loggable_controller.dart';
-import 'package:super_logger/core/models/loggable.dart';
 import 'package:super_logger/core/models/datelog.dart';
+import 'package:super_logger/core/models/loggable.dart';
 import 'package:super_logger/core/repository/main_repository/main_repository.dart';
+
+class NumberHistory {
+  final int previous;
+  final int current;
+  NumberHistory({
+    required this.previous,
+    required this.current,
+  });
+  bool get isIncreasing => current > previous;
+}
 
 class CounterLoggableController extends LoggableController<int> {
   CounterLoggableController(MainRepository repository, Loggable loggable)
@@ -13,22 +25,15 @@ class CounterLoggableController extends LoggableController<int> {
     super.dispose();
   }
 
-  int previousTotalCount = 0;
-  int currentTotalCount = 0;
-  @override
-  void onSetupDateLogStream() {
-    currentDateLog.listen((dateLog) {
-      if (dateLog != null) {
-        int old = currentTotalCount;
-        currentTotalCount =
-            (dateLog.logs.map((log) => log.value).reduce((value, element) => value + element));
-        if (currentTotalCount != old) {
-          previousTotalCount = old;
-        }
-      }
-    });
+  Map<String, NumberHistory> totalCounts = {};
+  NumberHistory updateTotalCounts(DateLog<int> dateLog) {
+    final previous = totalCounts[dateLog.date];
+    totalCounts[dateLog.date] = NumberHistory(
+      previous: previous?.current ?? 0,
+      current: dateLog.logs.map((log) => log.value).sum,
+    );
+    return totalCounts[dateLog.date]!;
   }
-
 }
 
 class CounterUseCases {

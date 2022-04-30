@@ -1,3 +1,4 @@
+
 import 'package:animations/animations.dart';
 import 'package:flutter/material.dart';
 import 'package:sliver_tools/sliver_tools.dart';
@@ -35,6 +36,7 @@ class LoggableDetailsScreen extends StatefulWidget {
 
 class _LoggableDetailsScreenState extends State<LoggableDetailsScreen>
     with SingleTickerProviderStateMixin {
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   late LoggableController loggableController;
   late LoggableUiHelper loggableUiHelper;
@@ -42,6 +44,9 @@ class _LoggableDetailsScreenState extends State<LoggableDetailsScreen>
   late final ScrollController _scrollController;
 
   final ValueNotifier<double> _toolbarShadowPercent = ValueNotifier(0);
+
+  //String _searchString = "";
+
   final ValueNotifier<int?> _totalEntries = ValueNotifier(null);
   final ValueNotifier<Map<String, int>?> _dateCount = ValueNotifier(null);
 
@@ -217,6 +222,7 @@ class _LoggableDetailsScreenState extends State<LoggableDetailsScreen>
           length: 2,
           child: Scaffold(
               backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
+              key: _scaffoldKey,
               appBar: AppBar(
                 title: AnimatedBuilder(
                     animation: loggableController,

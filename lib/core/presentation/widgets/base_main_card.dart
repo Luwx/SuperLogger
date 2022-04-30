@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
-import 'package:shimmer/shimmer.dart';
 import 'package:flex_color_scheme/flex_color_scheme.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:super_logger/core/loggable_controller.dart';
 import 'package:super_logger/core/loggables_types.dart';
 import 'package:super_logger/core/loggable_ui_helper.dart';
@@ -20,7 +21,11 @@ import 'package:super_logger/utils/extensions.dart';
 
 typedef CardValueWidget = Widget Function(DateLog, LoggableController, bool isCardSelected);
 
-class BaseMainCard extends StatefulWidget {
+final controllerProvider = Provider.family.autoDispose(
+  (ref, loggable) => locator.get<MainFactory>().makeLoggableController(loggable as Loggable),
+);
+
+class BaseMainCard extends HookConsumerWidget {
   const BaseMainCard({
     Key? key,
     required this.loggable,
@@ -49,35 +54,18 @@ class BaseMainCard extends StatefulWidget {
       cardLogDetails;
   final CardValueWidget cardValue;
 
-  // usually used for adding actions
+  // usually used for 'add' action
   final Widget? Function(LoggableController controller)? primaryButton;
 
   // usually used for deleting logs
-  final Widget? Function(LoggableController controller, OnLogDelete onLogDelete)? secondaryButton;
+  final Widget? Function(LoggableController controller, Stream<DateLog?> stream)? secondaryButton;
 
   final Color? color;
 
-  @override
-  State<BaseMainCard> createState() => _BaseMainCardState();
-}
+  bool get isCardSelected => state == CardState.selected;
+  bool get isCardToggled => state == CardState.toggled;
 
-class _BaseMainCardState extends State<BaseMainCard> {
-  final bool showTime = false;
-  late LoggableController loggableController;
-  late LoggableUiHelper loggableHelper;
-
-  bool get isCardSelected => widget.state == CardState.selected;
-  bool get isCardToggled => widget.state == CardState.toggled;
-
-  bool _wasPinned = false;
-
-  bool _showHour = true;
-
-  String timeAgoString = "";
-
-  final ValueNotifier<int?> _latestLogTime = ValueNotifier(null);
-
-  Widget hourWidget() {
+  Widget hourWidget(ValueNotifier<int?> _latestLogTime) {
     // final timeWidget = TimeBuilder.eachSecond(
     //   builder: (context, time, w, t) {
     //     if (w % 8 == 0) {
@@ -134,7 +122,7 @@ class _BaseMainCardState extends State<BaseMainCard> {
       child: ValueListenableBuilder<int?>(
         valueListenable: _latestLogTime,
         builder: (context, value, child) {
-          final bool showTime = widget.state != CardState.selected && _latestLogTime.value != null;
+          final bool showTime = state != CardState.selected && _latestLogTime.value != null;
           return TweenAnimationBuilder<double>(
             duration: showTime ? kThemeAnimationDuration * 3 : kThemeAnimationDuration * 4,
             tween: showTime ? Tween(begin: 1, end: 0) : Tween(begin: 0, end: 1),
@@ -154,7 +142,7 @@ class _BaseMainCardState extends State<BaseMainCard> {
             child: _latestLogTime.value == null
                 ? const SizedBox.shrink()
                 : Padding(
-                    key: ValueKey(_showHour),
+                    key: const ValueKey(true),
                     padding: const EdgeInsets.only(
                       bottom: 1, // fix little disalignment in widgetSpan
                     ),
@@ -166,7 +154,8 @@ class _BaseMainCardState extends State<BaseMainCard> {
                         fontSize: 12,
                         color: context.colors.onBackground.withOpacity(0.5),
                       ),
-                    )),
+                    ),
+                  ),
           );
         },
       ),
@@ -174,56 +163,23 @@ class _BaseMainCardState extends State<BaseMainCard> {
   }
 
   @override
-  void initState() {
-    super.initState();
-    loggableController = locator.get<MainFactory>().makeLoggableController(widget.loggable);
-    loggableHelper = locator.get<MainFactory>().getUiHelper(widget.loggable.type);
-    loggableController.setupDateLogStream(widget.date);
-  }
+  Widget build(BuildContext context, WidgetRef ref) {
+    final loggableController = ref.watch(controllerProvider(loggable));
+    final _stream = useMemoized(() => loggableController.dateLogStreamForDate(date));
 
-  @override
-  void dispose() {
-    loggableController.dispose();
-    super.dispose();
-  }
+    final primaryBtn = primaryButton?.call(loggableController);
+    final secondaryBtn = secondaryButton?.call(loggableController, _stream);
+    final isDarkMode = MediaQuery.of(context).platformBrightness == Brightness.dark;
+    final isPinned = loggableController.loggable.loggableSettings.pinned;
 
-  Future<void> _refreshCard() async {
-    await loggableController.refreshLoggable();
-    setState(() {});
-  }
-
-  @override
-  void didUpdateWidget(covariant BaseMainCard oldWidget) {
-    super.didUpdateWidget(oldWidget);
-
-    // the current loggable could be outdated
-    if (oldWidget.loggable != widget.loggable) {
-      _refreshCard();
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    Widget? primaryButton = widget.primaryButton?.call(loggableController);
-    Widget? secondaryButton = widget.secondaryButton?.call(loggableController, widget.onLogDeleted);
-    // int mainFlex = 1;
-    // if (primaryButton != null) {
-    //   mainFlex = secondaryButton != null ? 6 : 8;
-    // }
-    // if (secondaryButton != null) {
-    //   mainFlex = primaryButton != null ? 6 : 8;
-    // }
-
-    bool isDarkMode = MediaQuery.of(context).platformBrightness == Brightness.dark;
-
-    final bool isPinned = loggableController.loggable.loggableSettings.pinned;
+    final _wasPinned = useState(false);
+    final _latestLogTime = useValueNotifier<int?>(null);
 
     return Stack(
       clipBehavior: Clip.none,
       children: [
         AnimatedContainer(
           duration: kThemeAnimationDuration,
-          //height: 80.0,
           margin: EdgeInsets.fromLTRB(20, isCardSelected ? 5 : 10, 20, isCardSelected ? 5 : 10),
           decoration: BoxDecoration(
             borderRadius: const BorderRadius.all(Radius.circular(16)),
@@ -258,7 +214,7 @@ class _BaseMainCardState extends State<BaseMainCard> {
             ],
           ),
           child: Material(
-            color: widget.color ?? context.colors.surface,
+            color: color ?? context.colors.surface,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
             //clipBehavior: Clip.antiAlias,
             child: Stack(
@@ -275,8 +231,8 @@ class _BaseMainCardState extends State<BaseMainCard> {
                 InkWell(
                   borderRadius: BorderRadius.circular(12),
                   splashColor: context.colors.secondary.withAlpha(10),
-                  onTap: widget.onTap,
-                  onLongPress: widget.onLongPress,
+                  onTap: onTap,
+                  onLongPress: onLongPress,
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 8.0),
                     child: Column(
@@ -337,10 +293,11 @@ class _BaseMainCardState extends State<BaseMainCard> {
                                                         child: Text(
                                                           context.l10n.newLoggableBadge,
                                                           style: TextStyle(
-                                                              color: Theme.of(context)
-                                                                  .colorScheme
-                                                                  .onPrimary,
-                                                              fontSize: 11),
+                                                            color: Theme.of(context)
+                                                                .colorScheme
+                                                                .onPrimary,
+                                                            fontSize: 11,
+                                                          ),
                                                         ),
                                                       ),
                                                     ),
@@ -366,7 +323,7 @@ class _BaseMainCardState extends State<BaseMainCard> {
                                                         ),
                                                   ),
                                                   WidgetSpan(
-                                                    child: hourWidget(),
+                                                    child: hourWidget(_latestLogTime),
                                                   ),
                                                 ],
                                               ),
@@ -381,7 +338,7 @@ class _BaseMainCardState extends State<BaseMainCard> {
                                     ),
                                     // ======================  CARD VALUE  ======================
                                     StreamBuilder<DateLog?>(
-                                        stream: loggableController.currentDateLog,
+                                        stream: _stream,
                                         builder: (context, snapshot) {
                                           if (snapshot.hasError) {
                                             return Text(
@@ -404,7 +361,7 @@ class _BaseMainCardState extends State<BaseMainCard> {
                                                     .loggable.loggableSettings.pinned) {
                                               WidgetsBinding.instance!
                                                   .addPostFrameCallback((_) async {
-                                                widget.onNoLogs(loggableController.loggable);
+                                                onNoLogs(loggableController.loggable);
                                               });
                                             } else {
                                               WidgetsBinding.instance!
@@ -437,7 +394,7 @@ class _BaseMainCardState extends State<BaseMainCard> {
                                                     padding:
                                                         const EdgeInsets.symmetric(vertical: 6.0),
                                                     child: Text(
-                                                      widget.date.isToday
+                                                      date.isToday
                                                           ? context.l10n.noEventsToday
                                                           : context.l10n.noEvents,
                                                       style: TextStyle(
@@ -450,10 +407,11 @@ class _BaseMainCardState extends State<BaseMainCard> {
                                                       ),
                                                     ),
                                                   )
-                                                : widget.cardValue(
+                                                : cardValue(
                                                     snapshot.data!,
                                                     loggableController,
-                                                    widget.state == CardState.selected),
+                                                    state == CardState.selected,
+                                                  ),
                                             crossFadeState:
                                                 snapshot.connectionState == ConnectionState.waiting
                                                     ? CrossFadeState.showFirst
@@ -472,12 +430,12 @@ class _BaseMainCardState extends State<BaseMainCard> {
                                 ),
                               ),
                             ),
-                            if (secondaryButton != null) secondaryButton,
+                            if (secondaryBtn != null) secondaryBtn,
                             // Expanded(
                             //   flex: 2,
                             //   child: secondaryButton,
                             // ),
-                            if (primaryButton != null) primaryButton
+                            if (primaryBtn != null) primaryBtn
                             // Expanded(
                             //   flex: 2,
                             //   child: primaryButton,
@@ -490,10 +448,10 @@ class _BaseMainCardState extends State<BaseMainCard> {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               StreamBuilder<DateLog?>(
-                                  stream: loggableController.currentDateLog,
+                                  stream: _stream,
                                   builder: (context, snapshot) {
-                                    return widget.cardLogDetails(snapshot.data, loggableController,
-                                        widget.state == CardState.selected);
+                                    return cardLogDetails(snapshot.data, loggableController,
+                                        state == CardState.selected);
                                   }),
                               const SizedBox(
                                 height: 4,
@@ -503,7 +461,7 @@ class _BaseMainCardState extends State<BaseMainCard> {
                                     backgroundColor: context.colors.primary.withAlpha(10)),
                                 onPressed: () {
                                   final dateQueryParam =
-                                      widget.date.isToday ? '' : '?date=${widget.date.asISO8601}';
+                                      date.isToday ? '' : '?date=${date.asISO8601}';
                                   context.go(
                                       '/loggableDetails/${loggableController.loggable.id}$dateQueryParam');
                                 },
@@ -539,7 +497,7 @@ class _BaseMainCardState extends State<BaseMainCard> {
                                       ? null
                                       : () {
                                           if (isPinned) {
-                                            _wasPinned = true;
+                                            _wasPinned.value = true;
                                           }
                                           loggableController.togglePin();
                                         },
@@ -574,7 +532,7 @@ class _BaseMainCardState extends State<BaseMainCard> {
                                     //
                                     if (action != null) {
                                       if (action == ActionDone.update) {
-                                        _refreshCard();
+                                        //_refreshCard();
                                       }
                                     }
                                   },
@@ -602,14 +560,13 @@ class _BaseMainCardState extends State<BaseMainCard> {
             ),
           ),
         ),
-        if ((!isPinned && !_wasPinned) == false)
+        if ((!isPinned && !_wasPinned.value) == false)
           AnimatedPositioned(
             duration: kThemeAnimationDuration,
             top: isCardSelected ? -1 : 4,
             left: 10,
             child: GestureDetector(
-              onTap: widget
-                  .onLongPress, // this action should be more clear.. it will set the card toggled
+              onTap: onLongPress, // this action should be more clear.. it will set the card toggled
               child: TweenAnimationBuilder<double>(
                 duration: isPinned ? kThemeAnimationDuration * 1.5 : kThemeAnimationDuration,
                 tween: isPinned ? Tween(begin: 0, end: 1) : Tween(begin: 1, end: 0),
@@ -636,11 +593,11 @@ class _BaseMainCardState extends State<BaseMainCard> {
                 },
                 child: Container(
                   decoration: BoxDecoration(
-                    color: widget.date.isToday
+                    color: date.isToday
                         ? context.colors.secondary.lighten(12)
                         : context.colors.secondary.lighten(12).withOpacity(0.6),
                     borderRadius: BorderRadius.circular(22),
-                    boxShadow: widget.date.isToday
+                    boxShadow: date.isToday
                         ? [
                             BoxShadow(
                               color: context.colors.primary.darken(10).withOpacity(0.4),
@@ -767,69 +724,5 @@ class MainCardButton extends StatelessWidget {
             ),
           );
         });
-  }
-}
-
-class MainItemCardShimmer extends StatelessWidget {
-  const MainItemCardShimmer({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    double containerHeight = 15;
-
-    const BoxDecoration boxDecoration = BoxDecoration(
-      color: Colors.grey,
-      borderRadius: BorderRadius.all(Radius.circular(4)),
-    );
-
-    return Container(
-      padding: const EdgeInsets.all(16.0),
-      margin: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-      decoration: const BoxDecoration(
-        color: Color(0xFFF5F4F6),
-        borderRadius: BorderRadius.all(Radius.circular(10)),
-      ),
-      child: Shimmer.fromColors(
-        highlightColor: Colors.grey[100]!,
-        baseColor: Colors.grey[300]!,
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: <Widget>[
-            const SizedBox(width: 10),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Container(
-                    height: containerHeight * 1.4,
-                    width: 180,
-                    decoration: boxDecoration,
-                  ),
-                  const SizedBox(height: 5),
-                  Container(
-                    height: containerHeight,
-                    width: 80,
-                    decoration: boxDecoration,
-                  ),
-                  const SizedBox(height: 5),
-                  Container(
-                    height: containerHeight,
-                    width: 80,
-                    decoration: boxDecoration,
-                  )
-                ],
-              ),
-            ),
-            Container(
-              height: 54,
-              width: 54,
-              decoration:
-                  BoxDecoration(color: Colors.grey, borderRadius: BorderRadius.circular(16)),
-            )
-          ],
-        ),
-      ),
-    );
   }
 }

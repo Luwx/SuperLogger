@@ -1,12 +1,9 @@
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:purchases_flutter/purchases_flutter.dart';
-import 'package:super_logger/core/loggables_types.dart';
 import 'package:super_logger/core/models/loggable.dart';
 import 'package:super_logger/core/models/db_helper_models.dart';
 import 'package:super_logger/core/repository/main_repository/main_repository.dart';
-import 'package:super_logger/core/revenue_cat_provider.dart';
 import 'package:super_logger/core/usecases/core_usecases.dart';
 import 'package:collection/collection.dart';
 
