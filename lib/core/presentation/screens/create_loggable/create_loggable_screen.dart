@@ -1,6 +1,7 @@
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 
 import 'package:super_logger/core/loggables_types.dart';
 import 'package:super_logger/core/main_controller.dart';
@@ -17,147 +18,134 @@ import 'package:super_logger/utils/extensions.dart';
 import 'package:super_logger/utils/value_controller.dart';
 import 'package:super_logger/utils/id_generator.dart';
 
-class CreateLoggableScreen extends StatefulWidget {
+// final propertiesControllerProvider = Provider.autoDispose(
+//   (ref) => ValueEitherValidOrErrController<MappableObject>(),
+// );
+
+class CreateLoggableScreen extends HookWidget {
   const CreateLoggableScreen({Key? key, required this.loggableType, this.loggable})
       : super(key: key);
 
   final LoggableType loggableType;
   final Loggable? loggable;
 
-  @override
-  _CreateLoggableScreenState createState() => _CreateLoggableScreenState();
-}
+//   @override
+//   _CreateLoggableScreenState createState() => _CreateLoggableScreenState();
+// }
 
-class _CreateLoggableScreenState extends State<CreateLoggableScreen>
-    with SingleTickerProviderStateMixin {
+// class _CreateLoggableScreenState extends State<CreateLoggableScreen>
+//     with SingleTickerProviderStateMixin {
   //bool _pinned = false;
   //int _maxEntriesPerDay = 1000;
 
-  final ValueEitherValidOrErrController<MappableObject> _propertiesController =
-      ValueEitherValidOrErrController<MappableObject>();
-  final ValueEitherValidOrErrController<LoggableSettings> _settingsController =
-      ValueEitherValidOrErrController<LoggableSettings>();
-
-  late TextEditingController _titleController;
-  late FocusNode _titleFocusNode;
-  late TabController _tabController;
-
-  bool _busy = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _titleController = TextEditingController(text: widget.loggable?.title);
-    _titleFocusNode = FocusNode();
-    _tabController = TabController(length: 2, vsync: this);
-  }
-
-  void onSavePressed() async {
-    assert(_settingsController.isSetUp, "settings controller is not setup");
-
-    if (_titleController.text.isEmpty) {
-      _titleFocusNode.requestFocus();
-      _tabController.animateTo(0);
-      return;
-    }
-    Loggable newLoggable;
-    MappableObject? loggableProperties;
-    String id;
-    bool shouldUpdate;
-
-    // loggable properties page has not been loaded
-    if (_propertiesController.isSetUp == false) {
-      // load from existing loggable
-      if (widget.loggable != null) {
-        loggableProperties = widget.loggable!.loggableProperties;
-      } else {
-        loggableProperties = locator.get<MainFactory>().makeDefaultProperties(widget.loggableType);
-      }
-    } else {
-      loggableProperties = _propertiesController.value.fold(
-        (valueErr) => null,
-        (value) => value,
-      );
-      if (loggableProperties == null) {
-        return;
-      }
-    }
-
-    final loggableSettings = _settingsController.value.fold(
-      (valueErr) => null,
-      (value) => value,
-    );
-    // non valid settings
-    if (loggableSettings == null) {
-      return;
-    }
-
-    // use existing id
-    if (widget.loggable != null) {
-      // do nothing if no change was made
-      if (_titleController.text == widget.loggable!.title &&
-          loggableProperties == widget.loggable!.loggableProperties &&
-          widget.loggable!.loggableSettings == loggableSettings) {
-        //TODO: no action done, show snackbar
-        Navigator.pop(context);
-        return;
-      }
-      id = widget.loggable!.id;
-      shouldUpdate = true;
-    }
-    // generate new
-    else {
-      id = generateId();
-      shouldUpdate = false;
-    }
-
-    newLoggable = Loggable(
-      loggableSettings: loggableSettings,
-      type: widget.loggableType,
-      title: _titleController.text,
-      creationDate: widget.loggable?.creationDate ?? DateTime.now(),
-      tags: <LoggableTag>[].lock,
-      id: id,
-      loggableConfig: LoggableProperties(
-        generalConfig: loggableProperties,
-        mainCardConfig: const EmptyProperty(),
-        aggregationConfig: const EmptyProperty(),
-      ),
-    );
-
-    
-
-    if (shouldUpdate) {
-      setState(() {
-        _busy = true;
-      });
-      await MainController.updateLoggable(newLoggable);
-      await Future.delayed(const Duration(milliseconds: 500));
-      if (mounted) {
-        setState(() {
-          _busy = false;
-        });
-      }
-      await Future.delayed(const Duration(milliseconds: 100));
-    } else {
-      setState(() {
-        _busy = true;
-      });
-      await MainController.addLoggable(newLoggable);
-      await Future.delayed(const Duration(milliseconds: 500));
-      if (mounted) {
-        setState(() {
-          _busy = false;
-        });
-      }
-      await Future.delayed(const Duration(milliseconds: 100));
-    }
-
-    Navigator.pop(context, shouldUpdate ? ActionDone.update : ActionDone.add);
-  }
+  // @override
+  // void initState() {
+  //   super.initState();
+  //   _titleController = TextEditingController(text: widget.loggable?.title);
+  //   _titleFocusNode = FocusNode();
+  //   _tabController = TabController(length: 2, vsync: this);
+  // }
 
   @override
   Widget build(BuildContext context) {
+    final _propertiesController =
+        useMemoized(() => ValueEitherValidOrErrController<MappableObject>());
+    final _settingsController =
+        useMemoized(() => ValueEitherValidOrErrController<LoggableSettings>());
+
+    final _titleController = useTextEditingController(text: loggable?.title);
+    final _titleFocusNode = FocusNode();
+    final _tabController = useTabController(initialLength: 2);
+
+    final _busy = useState(false);
+
+    void onSavePressed() async {
+      assert(_settingsController.isSetUp, "settings controller is not setup");
+
+      if (_titleController.text.isEmpty) {
+        _titleFocusNode.requestFocus();
+        _tabController.animateTo(0);
+        return;
+      }
+      Loggable newLoggable;
+      MappableObject? loggableProperties;
+      String id;
+      bool shouldUpdate;
+
+      // loggable properties page has not been loaded
+      if (_propertiesController.isSetUp == false) {
+        // load from existing loggable
+        if (loggable != null) {
+          loggableProperties = loggable!.loggableProperties;
+        } else {
+          loggableProperties = locator.get<MainFactory>().makeDefaultProperties(loggableType);
+        }
+      } else {
+        loggableProperties = _propertiesController.value.fold(
+          (valueErr) => null,
+          (value) => value,
+        );
+        if (loggableProperties == null) {
+          return;
+        }
+      }
+
+      final loggableSettings = _settingsController.value.fold(
+        (valueErr) => null,
+        (value) => value,
+      );
+      // non valid settings
+      if (loggableSettings == null) {
+        return;
+      }
+
+      // use existing id
+      if (loggable != null) {
+        // do nothing if no change was made
+        if (_titleController.text == loggable!.title &&
+            loggableProperties == loggable!.loggableProperties &&
+            loggable!.loggableSettings == loggableSettings) {
+          //TODO: no action done, show snackbar
+          Navigator.pop(context);
+          return;
+        }
+        id = loggable!.id;
+        shouldUpdate = true;
+      }
+      // generate new
+      else {
+        id = generateId();
+        shouldUpdate = false;
+      }
+
+      newLoggable = Loggable(
+        loggableSettings: loggableSettings,
+        type: loggableType,
+        title: _titleController.text,
+        creationDate: loggable?.creationDate ?? DateTime.now(),
+        tags: <LoggableTag>[].lock,
+        id: id,
+        loggableConfig: LoggableProperties(
+          generalConfig: loggableProperties,
+          mainCardConfig: const EmptyProperty(),
+          aggregationConfig: const EmptyProperty(),
+        ),
+      );
+
+      _busy.value = true;
+
+      if (shouldUpdate) {
+        await MainController.updateLoggable(newLoggable);
+      } else {
+        await MainController.addLoggable(newLoggable);
+      }
+      await Future.delayed(const Duration(milliseconds: 500));
+      _busy.value = false;
+      await Future.delayed(const Duration(milliseconds: 100));
+
+      Navigator.pop(context, shouldUpdate ? ActionDone.update : ActionDone.add);
+    }
+
     return DefaultTabController(
       length: 2,
       child: Scaffold(
@@ -174,14 +162,13 @@ class _CreateLoggableScreenState extends State<CreateLoggableScreen>
                 ),
               ],
             ),
-            title: Text(
-                widget.loggable == null ? context.l10n.createNewLoggable : widget.loggable!.title),
+            title: Text(loggable == null ? context.l10n.createNewLoggable : loggable!.title),
             actions: <Widget>[
               TextButton(
                 style: TextButton.styleFrom(
                   primary: Theme.of(context).appBarTheme.foregroundColor,
                 ),
-                child: Text(widget.loggable == null ? context.l10n.create : context.l10n.save),
+                child: Text(loggable == null ? context.l10n.create : context.l10n.save),
                 onPressed: onSavePressed,
               )
             ]),
@@ -191,19 +178,17 @@ class _CreateLoggableScreenState extends State<CreateLoggableScreen>
               controller: _tabController,
               children: [
                 LoggableSettingsSection(
-                  loggable: widget.loggable,
+                  loggable: loggable,
                   titleController: _titleController,
                   settingsController: _settingsController,
                   titleFocusNode: _titleFocusNode,
                 ),
-
-                locator.get<MainFactory>().getUiHelper(widget.loggableType).getGeneralConfigForm(
+                locator.get<MainFactory>().getUiHelper(loggableType).getGeneralConfigForm(
                     propertiesController: _propertiesController,
-                    originalProperties: widget.loggable?.loggableProperties)
-                //Icon(Icons.directions_transit),
+                    originalProperties: loggable?.loggableProperties)
               ],
             ),
-            if (_busy)
+            if (_busy.value)
               Container(
                 color: Colors.black12,
                 child: const Center(
@@ -253,10 +238,11 @@ class _LoggableSettingsSectionState extends State<LoggableSettingsSection> {
   @override
   void initState() {
     super.initState();
-    widget.settingsController.setValue(LoggableSettingsHelper.settingsValidator(
-        widget.loggable == null
-            ? const LoggableSettings(pinned: false, maxEntriesPerDay: 5, color: null, symbol: "")
-            : widget.loggable!.loggableSettings));
+    widget.settingsController.setValue(
+      LoggableSettingsHelper.settingsValidator(widget.loggable == null
+          ? const LoggableSettings(pinned: false, maxEntriesPerDay: 5, color: null, symbol: "")
+          : widget.loggable!.loggableSettings),
+    );
   }
 
   @override

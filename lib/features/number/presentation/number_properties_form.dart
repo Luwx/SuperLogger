@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:super_logger/core/models/mappable_object.dart';
 import 'package:super_logger/core/presentation/theme/dimensions.dart';
 
@@ -7,7 +8,7 @@ import 'package:super_logger/features/number/models/number_properties.dart';
 import 'package:super_logger/utils/extensions.dart';
 import 'package:super_logger/utils/value_controller.dart';
 
-class EditValuePropertiesForm extends StatefulWidget {
+class EditValuePropertiesForm extends HookWidget {
   final NumberProperties? valueProperties;
   final ValueEitherValidOrErrController<MappableObject> propertiesController;
 
@@ -15,54 +16,35 @@ class EditValuePropertiesForm extends StatefulWidget {
       {Key? key, this.valueProperties, required this.propertiesController})
       : super(key: key);
 
-  @override
-  _EditValuePropertiesFormState createState() => _EditValuePropertiesFormState();
-}
-
-class _EditValuePropertiesFormState extends State<EditValuePropertiesForm> {
-  final _maxFocus = FocusNode();
-  final _minFocus = FocusNode();
-  late NumberFormMinMaxState _currentNumberFormState;
-
   NumberProperties get _currentProperties {
-    return widget.propertiesController.valueNoValidation as NumberProperties;
+    return propertiesController.valueNoValidation as NumberProperties;
   }
 
   void _setProperties(NumberProperties properties) {
-    widget.propertiesController.setValue(NumberPropertiesHelper.propertiesValidator(properties));
-  }
-
-  void _propertiesListener() {
-    final newState = NumberFormMinMaxState.fromProperties(_currentProperties, context);
-    if (_currentNumberFormState != newState) {
-      setState(() {
-        _currentNumberFormState = newState;
-      });
-    }
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    widget.propertiesController.setValue(
-      NumberPropertiesHelper.propertiesValidator(
-        widget.valueProperties ?? NumberProperties.defaults(),
-      ),
-    );
-    _currentNumberFormState = NumberFormMinMaxState.fromProperties(_currentProperties, context);
-    widget.propertiesController.addListener(_propertiesListener);
-  }
-
-  @override
-  void dispose() {
-    widget.propertiesController.removeListener(_propertiesListener);
-    super.dispose();
+    propertiesController.setValue(NumberPropertiesHelper.propertiesValidator(properties));
   }
 
   @override
   Widget build(BuildContext context) {
+    useEffect(
+      () {
+        if (propertiesController.isSetUp == false) {
+          propertiesController.setValue(
+            NumberPropertiesHelper.propertiesValidator(
+              valueProperties ?? NumberProperties.defaults(),
+            ),
+          );
+        }
+        return null;
+      },
+      [propertiesController],
+    );
+
+    useListenable(propertiesController);
+
+    final formState = NumberFormMinMaxState.fromProperties(_currentProperties, context);
+
     return SingleChildScrollView(
-      //padding: EdgeInsets.all(12),
       child: Column(
         children: <Widget>[
           const SizedBox(height: AppDimens.defaultSpacing),
@@ -101,11 +83,10 @@ class _EditValuePropertiesFormState extends State<EditValuePropertiesForm> {
                 Expanded(
                   child: TextFormField(
                     initialValue: _currentProperties.min?.toString(),
-                    focusNode: _minFocus,
                     decoration: InputDecoration(
                       //errorStyle: TextStyle(height: 0),
                       labelText: context.l10n.minValue,
-                      errorText: _currentNumberFormState.minError,
+                      errorText: formState.minError,
                       errorMaxLines: 2,
                     ),
                     keyboardType:
@@ -127,11 +108,10 @@ class _EditValuePropertiesFormState extends State<EditValuePropertiesForm> {
                 Expanded(
                   child: TextFormField(
                     initialValue: _currentProperties.max?.toString(),
-                    focusNode: _maxFocus,
                     decoration: InputDecoration(
                         //errorStyle: TextStyle(height: 0),
                         labelText: context.l10n.maxValue,
-                        errorText: _currentNumberFormState.maxError,
+                        errorText: formState.maxError,
                         errorMaxLines: 2),
                     keyboardType:
                         const TextInputType.numberWithOptions(decimal: false, signed: true),
@@ -158,15 +138,11 @@ class _EditValuePropertiesFormState extends State<EditValuePropertiesForm> {
             subtitle: Text(context.l10n.useSliderControlDescription),
             controlAffinity: ListTileControlAffinity.leading,
             value: _currentProperties.showSlider,
-            onChanged: !_currentNumberFormState.enableShowSliderTile
+            onChanged: !formState.enableShowSliderTile
                 ? null
                 : (bool? value) {
                     if (value == null) return;
-
-                    setState(() {
-                      _setProperties(_currentProperties.copyWith(showSlider: value));
-                      //_showSlider = value!;
-                    });
+                    _setProperties(_currentProperties.copyWith(showSlider: value));
                   },
           ),
           CheckboxListTile(
@@ -176,9 +152,7 @@ class _EditValuePropertiesFormState extends State<EditValuePropertiesForm> {
             value: _currentProperties.allowDecimal,
             onChanged: (bool? value) {
               if (value == null) return;
-              setState(() {
-                _setProperties(_currentProperties.copyWith(allowDecimal: value));
-              });
+              _setProperties(_currentProperties.copyWith(allowDecimal: value));
             },
           ),
           CheckboxListTile(
@@ -188,9 +162,7 @@ class _EditValuePropertiesFormState extends State<EditValuePropertiesForm> {
             value: _currentProperties.showTotalCount,
             onChanged: (bool? value) {
               if (value == null) return;
-              setState(() {
-                _setProperties(_currentProperties.copyWith(showTotalCount: value));
-              });
+              _setProperties(_currentProperties.copyWith(showTotalCount: value));
             },
           ),
         ],
