@@ -31,6 +31,10 @@ class MainFactory {
     return loggableFactory;
   }
 
+  MappableObject generalConfigFromMap(Map<String, dynamic> map, LoggableType type) {
+    return getFactoryFor(type).generalConfigFromMap(map);
+  }
+
   LoggableUiHelper getUiHelper(LoggableType type) {
     return getFactoryFor(type).getUiHelper();
   }

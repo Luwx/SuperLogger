@@ -8,14 +8,15 @@ import 'package:super_logger/core/models/log.dart';
 import 'package:super_logger/core/models/mappable_object.dart';
 import 'package:super_logger/core/presentation/screens/loggable_details/loggable_details_screen.dart';
 import 'package:super_logger/core/presentation/screens/home/widgets/card_date_list.dart';
+import 'package:super_logger/core/presentation/widgets/development_warning.dart';
 import 'package:super_logger/utils/value_controller.dart';
 
 typedef OnLogDelete = void Function(Log, Loggable);
 
 enum LogDisplayWidgetSize { small, medium, large }
 
-typedef LogValueFilterController = ValueEitherController<Option<ValueFilter>>;
-typedef DateLogValueFilterController = ValueEitherController<Option<DateLogFilter>>;
+typedef LogValueFilterController = ValueEitherController<ValueFilter>;
+typedef DateLogValueFilterController = ValueEitherController<DateLogFilter>;
 
 extension SizeHelper on LogDisplayWidgetSize {
   bool get isLarge => this == LogDisplayWidgetSize.large;
@@ -65,6 +66,9 @@ abstract class LoggableUiHelper {
   Widget? getDateLogSortForm(
       ValueEitherValidOrErrController<CompareDateLogs> controller, MappableObject properties);
 
+  Widget getDisplayAggregationWidget(
+      List<Log> logs, LoggableController controller, AggregationPeriod period);
+
   Widget getTileTitleWidget(Log log, LoggableController controller);
 
   Widget getDisplayLogValueWidget(dynamic logValue,
@@ -92,13 +96,18 @@ abstract class LoggableUiHelper {
 }
 
 abstract class BaseLoggableUiHelper implements LoggableUiHelper {
-
   @override
   Widget? getMainCardConfigForm({
     MappableObject? originalConfig,
     required ValueEitherValidOrErrController<MappableObject> configController,
   }) =>
       null;
+
+  @override
+  Widget getDisplayAggregationWidget(
+      List<Log> logs, LoggableController controller, AggregationPeriod period) {
+    return const DevelopmentWarning();
+  }
 
   @override
   Widget? getAggregationConfigForm({

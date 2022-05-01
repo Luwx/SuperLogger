@@ -1,4 +1,3 @@
-
 import 'package:animations/animations.dart';
 import 'package:flutter/material.dart';
 import 'package:sliver_tools/sliver_tools.dart';
@@ -54,8 +53,8 @@ class _LoggableDetailsScreenState extends State<LoggableDetailsScreen>
 
   // filtering feature
   bool _showFilterWidget = false;
-  ValueFilter? _logFilters;
-  DateLogFilter? _dateLogFilters;
+  ValueFilter? _logFilter;
+  DateLogFilter? _dateLogFilter;
   late NullableDateLimits _dateLimits;
 
   // sorting feature
@@ -101,9 +100,11 @@ class _LoggableDetailsScreenState extends State<LoggableDetailsScreen>
     loggableController.deleteLogs(_selectedLogs.toList());
 
     if (_selectedLogs.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text("No event selected"),
-      ));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("No event selected"),
+        ),
+      );
 
       setState(() {
         _selectMode = false;
@@ -148,9 +149,7 @@ class _LoggableDetailsScreenState extends State<LoggableDetailsScreen>
   }
 
   bool _isFilterActive() {
-    if (_logFilters != null ||
-        _dateLogFilters != null ||
-        _dateLimits != const NullableDateLimits()) {
+    if (_logFilter != null || _dateLogFilter != null || _dateLimits != const NullableDateLimits()) {
       return true;
     } else {
       return false;
@@ -292,7 +291,11 @@ class _LoggableDetailsScreenState extends State<LoggableDetailsScreen>
                             else
                               SliverToBoxAdapter(
                                 child: buildListHeaderToolBar(
-                                    themeData, toolbarForeground, context, toolbarBackground),
+                                  themeData,
+                                  toolbarForeground,
+                                  context,
+                                  toolbarBackground,
+                                ),
                               ),
                             StreamBuilder<List<Log>>(
                               stream: loggableController.getAllLogsStream(
@@ -332,78 +335,66 @@ class _LoggableDetailsScreenState extends State<LoggableDetailsScreen>
                                     ),
                                   );
                                 }
-                                final logs = snapshot.data!;
+                                var logs = List<Log>.from(snapshot.data!);
 
-                                //                                 if (logFilter != null) {
-                                //   // true == remove
-                                //   return _allLogsStream!.map(
-                                //     (logList) => logList..removeWhere((log) => logFilter.shouldRemove(log.value)),
-                                //   );
-                                // } else if (dateLogFilter != null) {
-                                //   // true == remove
-                                //   bool shouldRemove(log) {
-                                //     if (dateLogFilter.shouldRemove(log)) return true;
-                                //     return false;
-                                //   }
+                                // FILTER
+                                if (_logFilter != null) {
+                                  logs.removeWhere((log) => _logFilter!.shouldRemove(log.value));
+                                } else if (_dateLogFilter != null) {
+                                  // dateLog filters are HEAVY!
+                                  // unflatten back to dateLogs
+                                  Map<String, List<Log>> dateLogMap = {};
+                                  for (final log in logs) {
+                                    String date = log.dateAsISO8601;
+                                    dateLogMap.putIfAbsent(date, () => []).add(log);
+                                  }
+                                  List<DateLog> dateLogs = [];
+                                  for (final entry in dateLogMap.entries) {
+                                    dateLogs.add(DateLog(date: entry.key, logs: entry.value));
+                                  }
 
-                                //   // dateLog filters are HEAVY!
-                                //   return _allLogsStream!.map(
-                                //     (logList) {
-                                //       // unflatten back to dateLogs
-                                //       Map<String, List<Log<T>>> dateLogMap = {};
-                                //       for (final log in logList) {
-                                //         String date = log.dateAsISO8601;
-                                //         dateLogMap.putIfAbsent(date, () => []).add(log);
-                                //       }
-                                //       List<DateLog<T>> dateLogs = [];
-                                //       for (final entry in dateLogMap.entries) {
-                                //         dateLogs.add(DateLog(date: entry.key, logs: entry.value));
-                                //       }
+                                  // filter
+                                  dateLogs.removeWhere(
+                                      (dateLog) => _dateLogFilter!.shouldRemove(dateLog));
 
-                                //       // filter
-                                //       dateLogs.removeWhere((dateLog) => shouldRemove(dateLog));
+                                  // sorting if needed
+                                  if (_dateLogSortingConfig != null) {
+                                    dateLogs.sort(_dateLogSortingConfig!.compare);
+                                  }
 
-                                //       // sorting if needed
-                                //       if (dateLogSorting != null) {
-                                //         dateLogs.sort(dateLogSorting.compare);
-                                //       }
+                                  // flatten back
+                                  List<Log> filteredLogs = [];
+                                  for (final dateLog in dateLogs) {
+                                    filteredLogs.addAll(dateLog.logs);
+                                  }
 
-                                //       // flatten back
-                                //       List<Log<T>> logs = [];
-                                //       for (final dateLog in dateLogs) {
-                                //         logs.addAll(dateLog.logs);
-                                //       }
+                                  logs = filteredLogs;
+                                } else if (_dateLogSortingConfig != null) {
+                                  // unflatten back to dateLogs
+                                  Map<String, List<Log>> dateLogMap = {};
+                                  for (final log in logs) {
+                                    String date = log.dateAsISO8601;
+                                    dateLogMap.putIfAbsent(date, () => []).add(log);
+                                  }
+                                  List<DateLog> dateLogs = [];
+                                  for (final entry in dateLogMap.entries) {
+                                    dateLogs.add(DateLog(date: entry.key, logs: entry.value));
+                                  }
 
-                                //       return logs;
-                                //     },
-                                //   );
-                                // } else if (dateLogSorting != null) {
-                                //   return _allLogsStream!.map((logList) {
-                                //     // unflatten back to dateLogs
-                                //     Map<String, List<Log<T>>> dateLogMap = {};
-                                //     for (final log in logList) {
-                                //       String date = log.dateAsISO8601;
-                                //       dateLogMap.putIfAbsent(date, () => []).add(log);
-                                //     }
-                                //     List<DateLog<T>> dateLogs = [];
-                                //     for (final entry in dateLogMap.entries) {
-                                //       dateLogs.add(DateLog(date: entry.key, logs: entry.value));
-                                //     }
+                                  // sort
+                                  dateLogs.sort(_dateLogSortingConfig!.compare);
 
-                                //     // sort
-                                //     dateLogs.sort(dateLogSorting.compare);
+                                  // flatten back
+                                  List<Log> sortedLogs = [];
+                                  for (final dateLog in dateLogs) {
+                                    sortedLogs.addAll(dateLog.logs);
+                                  }
 
-                                //     // flatten back
-                                //     List<Log<T>> logs = [];
-                                //     for (final dateLog in dateLogs) {
-                                //       logs.addAll(dateLog.logs);
-                                //     }
+                                  //return sortedLogs;
+                                  logs = sortedLogs;
+                                }
 
-                                //     return logs;
-                                //   });
-                                // }
-
-                                // search
+                                // // search
                                 // if (_searchString.isNotEmpty) {
                                 //   logs.removeWhere(
                                 //       (log) => !loggableController.hasString(_searchString, log));
@@ -642,33 +633,40 @@ class _LoggableDetailsScreenState extends State<LoggableDetailsScreen>
                   },
                 ),
                 // TextButton(
-                //     onPressed: () {
-                //       final rnd = Random();
-                //       //int year2012 = 1457154942;
-                //       //int maxTime = (60 * 60 * 24 * 365 * 2);
+                //   onPressed: () {
+                //     final rnd = Random();
+                //     //int year2012 = 1457154942;
+                //     //int maxTime = (60 * 60 * 24 * 365 * 2);
 
-                //       int days600 = 600 * 24 * 60 * 60 * 1000;
-                //       int maxValue = 100;
+                //     int days600 = 600 * 24 * 60 * 60 * 1000;
+                //     int maxValue = 100;
 
-                //       final now = DateTime.now();
+                //     final now = DateTime.now();
 
-                //       List<Log<int>> logs = [];
-                //       for (int i = 0; i < 12000; i++) {
-                //         double rndVal = rnd.nextDouble();
-                //         DateTime timestamp =
-                //             now.subtract(Duration(milliseconds: (days600 * rndVal).toInt()));
-                //         logs.add(Log(
-                //             id: generateId(),
-                //             timestamp: timestamp,
-                //             value: (maxValue * rndVal).toInt() + timestamp.hour + timestamp.minute + timestamp.day,
-                //             note: "index $i"));
-                //       }
-                //       loggableController.addLogs(logs);
-                //     },
-                //     child: const Text(
-                //       "blow up",
-                //       style: TextStyle(),
-                //     )),
+                //     List<Log<int>> logs = [];
+                //     for (int i = 0; i < 12000; i++) {
+                //       double rndVal = rnd.nextDouble();
+                //       DateTime timestamp =
+                //           now.subtract(Duration(milliseconds: (days600 * rndVal).toInt()));
+                //       logs.add(
+                //         Log(
+                //           id: generateId(),
+                //           timestamp: timestamp,
+                //           value: (maxValue * rndVal).toInt() +
+                //               timestamp.hour +
+                //               timestamp.minute +
+                //               timestamp.day,
+                //           note: "index $i",
+                //         ),
+                //       );
+                //     }
+                //     loggableController.addLogs(logs);
+                //   },
+                //   child: const Text(
+                //     "blow up",
+                //     style: TextStyle(),
+                //   ),
+                // ),
                 TextButton(
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
@@ -737,26 +735,33 @@ class _LoggableDetailsScreenState extends State<LoggableDetailsScreen>
                 mainAxisSize: MainAxisSize.min,
                 children: <Widget>[
                   FilterLogListForm(
-                    logFiltersApplied: _logFilters,
+                    logFiltersApplied: _logFilter,
                     dateLimitsApplied: _dateLimits,
-                    dateLogFiltersApplied: _dateLogFilters,
+                    dateLogFiltersApplied: _dateLogFilter,
                     uiHelper: loggableUiHelper,
                     loggable: loggableController.loggable,
                     onApplyFilters: ((filters, dateLimits) {
-                      setState(() {
-                        filters.fold(
-                          (logFilters) {
-                            _dateLogFilters = null;
-                            _logFilters = logFilters.match((t) => t, () => null);
-                          },
-                          (dateLogFilters) {
-                            _logFilters = null;
-                            _dateLogFilters = dateLogFilters.match((t) => t, () => null);
-                          },
-                        );
-                        _dateLimits = dateLimits;
-                        _showFilterWidget = false;
-                      });
+                      setState(
+                        () {
+                          if (filters == null) {
+                            _dateLogFilter = null;
+                            _logFilter = null;
+                          } else {
+                            filters.fold(
+                              (logFilter) {
+                                _dateLogFilter = null;
+                                _logFilter = logFilter;
+                              },
+                              (dateLogFilter) {
+                                _logFilter = null;
+                                _dateLogFilter = dateLogFilter;
+                              },
+                            );
+                          }
+                          _dateLimits = dateLimits;
+                          _showFilterWidget = false;
+                        },
+                      );
                     }),
                   ),
                   const SizedBox(
@@ -925,7 +930,7 @@ class _LoggableDetailsScreenState extends State<LoggableDetailsScreen>
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (showDateHeader)
+          if (showDateHeader) ...[
             Padding(
               padding: EdgeInsets.only(top: index == 0 ? 0 : 24, bottom: 8),
               child: Row(
@@ -997,6 +1002,23 @@ class _LoggableDetailsScreenState extends State<LoggableDetailsScreen>
                 ],
               ),
             ),
+            if (loggableController.loggable.loggableConfig.aggregationConfig.hasAggregations)
+              FutureBuilder(
+                future: loggableController.getAllLogs(
+                    dateLimits: AggregationHelper.dateLimits(log.timestamp, _aggregationPeriod)),
+                builder: (context, snapshot) {
+                  if (snapshot.hasData) {
+                    return Container(
+                      child: Text("test"),
+                    );
+                  } else {
+                    return Container(
+                      child: Text("nore"),
+                    );
+                  }
+                },
+              )
+          ],
           OpenContainer(
             transitionDuration: kThemeAnimationDuration * 2,
             transitionType: ContainerTransitionType.fadeThrough,
@@ -1080,90 +1102,6 @@ abstract class CompareDateLogs {
   int compare(DateLog a, DateLog b);
 }
 
-class BuilderPersistentDelegate extends SliverPersistentHeaderDelegate {
-  BuilderPersistentDelegate({
-    required double maxExtent,
-    required double minExtent,
-    required this.builder,
-  })  : _maxExtent = maxExtent,
-        _minExtent = minExtent;
-
-  final double _maxExtent;
-  final double _minExtent;
-  final Widget Function(double percent) builder;
-
-  @override
-  Widget build(
-    BuildContext context,
-    double shrinkOffset,
-    bool overlapsContent,
-  ) {
-    //print('shrinkOffset: $shrinkOffset, _maxExtent: $_maxExtent');
-    return builder(shrinkOffset / _maxExtent);
-  }
-
-  @override
-  double get maxExtent => _maxExtent;
-
-  @override
-  double get minExtent => _minExtent;
-
-  @override
-  bool shouldRebuild(covariant SliverPersistentHeaderDelegate oldDelegate) => false;
-}
-
-// class LoggableValueTile extends StatelessWidget {
-//   const LoggableValueTile({
-//     Key? key,
-//     required this.logs,
-//     required this.index,
-//     required this.controller,
-//     required this.uiHelper,
-//     required this.isSelected,
-//   }) : super(key: key);
-
-//   final bool isSelected;
-//   final List<Log> logs;
-//   final int index;
-//   final LoggableController controller;
-//   final LoggableUiHelper uiHelper;
-
-//   @override
-//   Widget build(BuildContext context) {
-//     final log = logs[index];
-//     bool showDateHeader = false;
-//     if (index == 0) {
-//       showDateHeader = true;
-//     } else {
-//       if (logs[index - 1].dateAsISO8601 != log.dateAsISO8601) {
-//         showDateHeader = true;
-//       }
-//     }
-
-//     bool isLast = false;
-//     if (index == logs.length - 1) {
-//       isLast = true;
-//     } else {
-//       if (logs[index + 1].dateAsISO8601 != log.dateAsISO8601) {
-//         isLast = true;
-//       }
-//     }
-
-//     ShapeBorder shape = RoundedRectangleBorder(
-//       borderRadius: BorderRadius.vertical(
-//         top: showDateHeader ? const Radius.circular(16) : Radius.zero,
-//         bottom: isLast ? const Radius.circular(16) : Radius.zero,
-//       ),
-//     );
-
-//     Color? tileColor = isSelected
-//         ? Colors.red.withAlpha(50)
-//         : Color.lerp(context.colors.primary, Theme.of(context).scaffoldBackgroundColor, 0.96);
-
-//     return Container();
-//   }
-// }
-
 class AggregationHelper {
   AggregationHelper._();
 
@@ -1179,6 +1117,31 @@ class AggregationHelper {
         return context.l10n.entryYearInformation(amount);
       case AggregationPeriod.noAggregation:
         return "";
+    }
+  }
+
+  static NullableDateLimits dateLimits(DateTime date, AggregationPeriod period) {
+    switch (period) {
+      case AggregationPeriod.day:
+        return NullableDateLimits(maxDate: date, minDate: date);
+      case AggregationPeriod.week:
+        final startOfWeekDate = date.subtract(Duration(days: date.weekday - 1));
+        return NullableDateLimits(
+          maxDate: startOfWeekDate.add(const Duration(days: 7)),
+          minDate: startOfWeekDate,
+        );
+      case AggregationPeriod.month:
+        return NullableDateLimits(
+          maxDate: DateTime(date.year, date.month + 1).subtract(const Duration(days: 1)),
+          minDate: DateTime(date.year, date.month),
+        );
+      case AggregationPeriod.year:
+        return NullableDateLimits(
+          maxDate: DateTime(date.year + 1).subtract(const Duration(days: 1)),
+          minDate: DateTime(date.year),
+        );
+      case AggregationPeriod.noAggregation:
+        return const NullableDateLimits();
     }
   }
 

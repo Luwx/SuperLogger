@@ -20,9 +20,12 @@ class TextFactory extends BaseLoggableFactory<String> {
       map,
       generalMapper: TextProperties.fromJson,
       mainCardMapper: EmptyProperty.fromMap,
-      aggregationMapper: EmptyProperty.fromMap,
+      aggregationMapper: EmptyAggregationConfig.fromMap,
     );
   }
+
+  @override
+  MappableObject generalConfigFromMap(Map<String, dynamic> map) => TextProperties.fromJson(map);
 
   @override
   LoggableController<Object> createLoggableController(

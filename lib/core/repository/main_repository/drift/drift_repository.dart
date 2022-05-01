@@ -182,11 +182,18 @@ class DriftRepository implements MainRepository {
   }
 
   @override
-  Future<List<Log<T>>> getLogs<T>(Loggable loggable) async {
+  Future<List<Log<T>>> getLogs<T>(
+    Loggable loggable, {
+    NullableDateLimits dateLimits = const NullableDateLimits(),
+  }) async {
     ValueFromMap<T>? valueFromMap =
         locator.get<MainFactory>().entryValueFromMap(loggable.type) as ValueFromMap<T>?;
 
-    final logs = await _logEntryDao.getAllLogs(loggable.id);
+    final logs = await _logEntryDao.getAllLogs(
+      loggable.id,
+      maxDate: dateLimits.maxDate?.asISO8601,
+      minDate: dateLimits.minDate?.asISO8601,
+    );
 
     return logs
         .map((logData) => Log<T>(

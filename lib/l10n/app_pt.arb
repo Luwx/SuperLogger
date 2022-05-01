@@ -10,6 +10,7 @@
     "deleteLoggable": "DELETAR REGISTRÁVEL",
     "noLoggable": "Sem Registráveis",
     "loggableNotFound": "Registrável não encontrado",
+    "none": "Nenhum",
     "noData": "Sem Dados",
     "noEvents": "Sem eventos",
     "noEntries": "Nenhum registro",

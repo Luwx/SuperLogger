@@ -21,9 +21,12 @@ class ImageFactory extends BaseLoggableFactory<ImageLog> {
       map,
       generalMapper: ImageProperties.fromJson,
       mainCardMapper: EmptyProperty.fromMap,
-      aggregationMapper: EmptyProperty.fromMap,
+      aggregationMapper: EmptyAggregationConfig.fromMap,
     );
   }
+
+  @override
+  MappableObject generalConfigFromMap(Map<String, dynamic> map) => ImageProperties.fromJson(map);
 
   @override
   LoggableController<Object> createLoggableController(

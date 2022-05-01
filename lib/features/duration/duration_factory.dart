@@ -21,7 +21,7 @@ class DurationFactory extends BaseLoggableFactory<DurationLog> {
       map,
       generalMapper: DurationProperties.fromJson,
       mainCardMapper: EmptyProperty.fromMap,
-      aggregationMapper: EmptyProperty.fromMap,
+      aggregationMapper: EmptyAggregationConfig.fromMap,
     );
   }
 
@@ -30,6 +30,9 @@ class DurationFactory extends BaseLoggableFactory<DurationLog> {
       MainRepository repository, Loggable loggable) {
     return DurationLoggableController(loggable: loggable, repository: repository);
   }
+
+  @override
+  MappableObject generalConfigFromMap(Map<String, dynamic> map) => DurationProperties.fromJson(map);
 
   @override
   MappableObject createDefaultProperties() {

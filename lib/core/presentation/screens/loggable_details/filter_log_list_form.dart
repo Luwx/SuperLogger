@@ -15,7 +15,7 @@ import 'package:super_logger/utils/value_controller.dart';
 
 enum _DateButtonDialogAction { reset, pickNewDate }
 
-enum _Tabs { logContent, dateContent }
+enum _Tabs { none, logContent, dateContent }
 
 class FilterLogListForm extends StatefulWidget {
   const FilterLogListForm(
@@ -32,8 +32,7 @@ class FilterLogListForm extends StatefulWidget {
   final ValueFilter? logFiltersApplied;
   final DateLogFilter? dateLogFiltersApplied;
 
-  final Function(
-          Either<Option<ValueFilter>, Option<DateLogFilter>> filters, NullableDateLimits datelimits)
+  final Function(Either<ValueFilter, DateLogFilter>? filters, NullableDateLimits datelimits)
       onApplyFilters;
 
   final LoggableUiHelper uiHelper;
@@ -44,30 +43,35 @@ class FilterLogListForm extends StatefulWidget {
 }
 
 class _FilterLogListFormState extends State<FilterLogListForm> {
-  int _currentTab = 0;
-  int _previousTab = 0;
+  _Tabs _currentTab = _Tabs.none;
+  _Tabs _previousTab = _Tabs.none;
 
   late NullableDateLimits _dateLimits;
   bool _isAppliable = false;
 
   // check if value can be applied, if it is not already
   void _updateAppliability() {
-    _Tabs tab = _Tabs.values[_currentTab];
+    _Tabs tab = _Tabs.values[_currentTab.index];
     bool isAppliable = true;
     switch (tab) {
       case _Tabs.logContent:
         bool appliableLogFilters = _logFilterController.value.fold(
           (l) => false,
-          (r) => (r.match((some) => some, () => null)) != widget.logFiltersApplied,
+          (r) => r != widget.logFiltersApplied,
         );
         isAppliable = appliableLogFilters || _dateLimits != widget.dateLimitsApplied;
         break;
       case _Tabs.dateContent:
         bool appliableDateLogFilters = _dateLogFilterController.value.fold(
           (l) => false,
-          (r) => (r.match((some) => some, () => null)) != widget.dateLogFiltersApplied,
+          (r) => r != widget.dateLogFiltersApplied,
         );
         isAppliable = appliableDateLogFilters || _dateLimits != widget.dateLimitsApplied;
+        break;
+      case _Tabs.none:
+        isAppliable = _dateLimits != widget.dateLimitsApplied ||
+            widget.logFiltersApplied != null ||
+            widget.dateLogFiltersApplied != null;
         break;
     }
     if (_isAppliable != isAppliable) {
@@ -77,8 +81,8 @@ class _FilterLogListFormState extends State<FilterLogListForm> {
     }
   }
 
-  late ValueEitherController<Option<ValueFilter>> _logFilterController;
-  late ValueEitherController<Option<DateLogFilter>> _dateLogFilterController;
+  late ValueEitherController<ValueFilter> _logFilterController;
+  late ValueEitherController<DateLogFilter> _dateLogFilterController;
 
   @override
   void didUpdateWidget(covariant FilterLogListForm oldWidget) {
@@ -91,16 +95,16 @@ class _FilterLogListFormState extends State<FilterLogListForm> {
     super.initState();
     _logFilterController = ValueEitherController();
     if (widget.logFiltersApplied != null) {
-      _logFilterController.setRightValue(Option.of(widget.logFiltersApplied!));
+      _logFilterController.setRightValue(widget.logFiltersApplied!);
     } else {
-      _logFilterController.setRightValue(Option.none());
+      _logFilterController.setErrorValue("No filter selected");
     }
 
     _dateLogFilterController = ValueEitherController();
     if (widget.dateLogFiltersApplied != null) {
-      _dateLogFilterController.setRightValue(Option.of(widget.dateLogFiltersApplied!));
+      _dateLogFilterController.setRightValue(widget.dateLogFiltersApplied!);
     } else {
-      _dateLogFilterController.setRightValue(Option.none());
+      _dateLogFilterController.setErrorValue("No filter selected");
     }
 
     _dateLimits = widget.dateLimitsApplied;
@@ -122,6 +126,7 @@ class _FilterLogListFormState extends State<FilterLogListForm> {
     //----
     //
     final Map<int, Widget> tabContents = {
+      _Tabs.none.index: const SizedBox.shrink(),
       _Tabs.logContent.index: widget.uiHelper
           .getLogFilterForm(_logFilterController, widget.loggable.loggableProperties),
       // _Tabs.dateContent.index: FilterByDateLogContentForm(
@@ -135,20 +140,36 @@ class _FilterLogListFormState extends State<FilterLogListForm> {
     //
     //----
     //
-    final Map<int, Widget> tabs = <int, Widget>{
-      _Tabs.logContent.index: const Padding(
-        padding: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-        child: Text("Log content",
-            style: TextStyle(
-              fontWeight: FontWeight.w500,
-            )),
+    final Map<_Tabs, Widget> tabs = <_Tabs, Widget>{
+      _Tabs.none: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+        child: Text(
+          context.l10n.none,
+          textAlign: TextAlign.center,
+          style: const TextStyle(
+            fontWeight: FontWeight.w500,
+          ),
+        ),
       ),
-      _Tabs.dateContent.index: const Padding(
+      _Tabs.logContent: const Padding(
         padding: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-        child: Text("Date content",
-            style: TextStyle(
-              fontWeight: FontWeight.w500,
-            )),
+        child: Text(
+          "Log content",
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ),
+      _Tabs.dateContent: const Padding(
+        padding: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+        child: Text(
+          "Date content",
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontWeight: FontWeight.w500,
+          ),
+        ),
       )
     };
 
@@ -267,10 +288,11 @@ class _FilterLogListFormState extends State<FilterLogListForm> {
                               }
                             }
                             final DateTime? pickedDate = await showDatePicker(
-                                context: context,
-                                initialDate: _dateLimits.maxDate ?? DateTime.now(),
-                                firstDate: DateTime(2000, 1),
-                                lastDate: DateTime.now());
+                              context: context,
+                              initialDate: _dateLimits.maxDate ?? DateTime.now(),
+                              firstDate: DateTime(2000, 1),
+                              lastDate: DateTime.now(),
+                            );
 
                             if (pickedDate != null) {
                               if (_dateLimits.minDate != null &&
@@ -302,11 +324,13 @@ class _FilterLogListFormState extends State<FilterLogListForm> {
           const SizedBox(
             height: 24,
           ),
-          Text("Content filter",
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.onBackground.withOpacity(0.8),
-                fontWeight: FontWeight.w500,
-              )),
+          Text(
+            "Content filter",
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onBackground.withOpacity(0.8),
+              fontWeight: FontWeight.w500,
+            ),
+          ),
           const SizedBox(
             height: 8,
           ),
@@ -320,13 +344,16 @@ class _FilterLogListFormState extends State<FilterLogListForm> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
-                CupertinoSegmentedControl(
+                CupertinoSegmentedControl<_Tabs>(
                   borderColor: Colors.transparent,
-                  unselectedColor: Color.lerp(Theme.of(context).colorScheme.primary,
-                      Theme.of(context).colorScheme.background, 0.84),
+                  unselectedColor: Color.lerp(
+                    Theme.of(context).colorScheme.primary,
+                    Theme.of(context).colorScheme.background,
+                    0.84,
+                  ),
                   //selectedColor: Colors.white,
                   children: tabs,
-                  onValueChanged: (int val) {
+                  onValueChanged: (_Tabs val) {
                     setState(() {
                       _previousTab = _currentTab;
                       _currentTab = val;
@@ -335,13 +362,14 @@ class _FilterLogListFormState extends State<FilterLogListForm> {
                   },
                   groupValue: _currentTab,
                 ),
-                const SizedBox(
-                  height: 12,
-                ),
+                if (_currentTab != _Tabs.none)
+                  const SizedBox(
+                    height: 12,
+                  ),
                 PageTransitionSwitcher(
                   duration: kThemeAnimationDuration,
-                  reverse: _currentTab < _previousTab,  
-                  child: tabContents[_currentTab],
+                  reverse: _currentTab.index < _previousTab.index,
+                  child: tabContents[_currentTab.index],
                   layoutBuilder: (entries) {
                     return AnimatedSize(
                       curve: Curves.easeOutCubic,
@@ -372,13 +400,25 @@ class _FilterLogListFormState extends State<FilterLogListForm> {
             onPressed: !_isAppliable
                 ? null
                 : () {
-                    widget.onApplyFilters(
-                        _currentTab == 0
-                            ? Left(_logFilterController.value.fold((l) => null, (r) => r)!)
-                            : Right(
-                                (_dateLogFilterController.value.fold((l) => null, (r) => r)!),
-                              ),
-                        _dateLimits);
+                    switch (_currentTab) {
+                      case _Tabs.none:
+                        widget.onApplyFilters(null, _dateLimits);
+                        break;
+                      case _Tabs.logContent:
+                        widget.onApplyFilters(
+                          Left(_logFilterController.value.fold((l) => null, (r) => r)!),
+                          _dateLimits,
+                        );
+                        break;
+                      case _Tabs.dateContent:
+                        widget.onApplyFilters(
+                          Right(
+                            (_dateLogFilterController.value.fold((l) => null, (r) => r)!),
+                          ),
+                          _dateLimits,
+                        );
+                        break;
+                    }
                   },
             child: const SizedBox(
               width: double.maxFinite,

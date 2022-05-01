@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:fpdart/fpdart.dart' show Option;
 import 'package:super_logger/core/models/filters.dart';
 import 'package:super_logger/utils/extensions.dart';
+import 'package:super_logger/utils/number_reg_exp_helper.dart';
 import 'package:super_logger/utils/value_controller.dart';
 
 enum _FilterType { removeLargerThan, removeLessThan, equalTo, between }
@@ -20,33 +20,43 @@ String _getFilterTranslation(BuildContext context, _FilterType type) {
   }
 }
 
-class NumLogFilterForm2 extends StatefulWidget {
-  const NumLogFilterForm2({Key? key, required this.controller}) : super(key: key);
-  final ValueEitherController<Option<ValueFilter>> controller;
+class NumLogFilterForm extends StatefulWidget {
+  const NumLogFilterForm({
+    Key? key,
+    required this.controller,
+    this.allowDecimals = true,
+    this.allowNegative = true,
+  }) : super(key: key);
+  final ValueEitherController<ValueFilter> controller;
+  final bool allowDecimals;
+  final bool allowNegative;
 
   @override
-  _NumLogFilterForm2State createState() => _NumLogFilterForm2State();
+  _NumLogFilterFormState createState() => _NumLogFilterFormState();
 }
 
-class _NumLogFilterForm2State extends State<NumLogFilterForm2> {
+class _NumLogFilterFormState extends State<NumLogFilterForm> {
   late _FilterType _filter;
 
-  final formatter = <TextInputFormatter>[
-    FilteringTextInputFormatter.allow(
-      RegExp(r'^-?\d{0,9}'),
-    ),
-  ];
+  final TextEditingController _textController = TextEditingController();
+
+  late final List<TextInputFormatter> _formatter;
 
   @override
   void initState() {
     super.initState();
+    _formatter = <TextInputFormatter>[
+      FilteringTextInputFormatter.allow(
+        NumberRegExpHelper.inputRegex(
+          widget.allowNegative,
+          widget.allowDecimals,
+        ),
+      ),
+    ];
     if (widget.controller.isSetUp) {
       final filter = widget.controller.value.fold(
         (l) => null,
-        (r) => r.match(
-          (some) => some,
-          () => null,
-        ),
+        (r) => r,
       );
 
       if (filter != null) {
@@ -72,45 +82,32 @@ class _NumLogFilterForm2State extends State<NumLogFilterForm2> {
   @override
   Widget build(BuildContext context) {
     Widget editWidget;
+    ValueFilter Function(double val)? getFilter;
     switch (_filter) {
       case _FilterType.removeLargerThan:
+        getFilter = (val) => NumFilterOutLargerThan(val);
+        continue singleValue;
       case _FilterType.removeLessThan:
+        getFilter ??= (val) => NumFilterOutLessThan(val);
+        continue singleValue;
+      singleValue:
       case _FilterType.equalTo:
+        getFilter ??= (val) => NumFilterOutNotEqualTo(val);
         editWidget = TextFormField(
+          controller: _textController,
           decoration: InputDecoration(
             isDense: true,
-            label: Text(context.l10n.value),
+            hintText: context.l10n.value,
             //errorText: errorString,
           ),
-          inputFormatters: formatter,
+          inputFormatters: _formatter,
           keyboardType: const TextInputType.numberWithOptions(decimal: false, signed: true),
           onChanged: (s) {
             double? val = double.tryParse(s);
             if (val != null) {
-              ValueFilter filter;
-
-              // TODO: clean this code...
-              if (_filter == _FilterType.equalTo) {
-                filter = NumFilterOutNotEqualTo(val);
-              } else if (_filter == _FilterType.removeLargerThan) {
-                filter = NumFilterOutLargerThan(val);
-              } else /*if(_filter == _FilterType.removeLessThan)*/ {
-                filter = NumFilterOutLessThan(val);
-              }
-              widget.controller.setRightValue(Option.of(filter));
-
-              // if (errorString != null) {
-              //   setState(() {
-              //     errorString = null;
-              //   });
-              // }
+              widget.controller.setRightValue(getFilter!(val));
             } else {
-              widget.controller.setErrorValue("Invalid filter value: $val");
-              // if (errorString == null) {
-              //   setState(() {
-              //     errorString = "Invalid Value";
-              //   });
-              // }
+              widget.controller.setErrorValue("Invalid filter value: $s");
             }
           },
         );
@@ -125,9 +122,6 @@ class _NumLogFilterForm2State extends State<NumLogFilterForm2> {
         DropdownButtonHideUnderline(
           child: DropdownButton<_FilterType>(
             value: _filter,
-            //isExpanded: true,
-            //icon: const Icon(Icons.arrow_downward),
-            //iconSize: 24,
             icon: const Padding(
               padding: EdgeInsets.only(right: 4),
               child: Icon(Icons.keyboard_arrow_down_rounded),
@@ -142,28 +136,19 @@ class _NumLogFilterForm2State extends State<NumLogFilterForm2> {
               if (filter != null) {
                 setState(() {
                   _filter = filter;
-                  widget.controller.setRightValue(Option.none());
+                  _textController.text = "";
+                  widget.controller.setErrorValue("No value selected");
                 });
               }
             },
-            items: [
-              DropdownMenuItem(
-                value: _FilterType.removeLargerThan,
-                child: Text(_getFilterTranslation(context, _FilterType.removeLargerThan)),
-              ),
-              DropdownMenuItem(
-                value: _FilterType.removeLessThan,
-                child: Text(_getFilterTranslation(context, _FilterType.removeLessThan)),
-              ),
-              DropdownMenuItem(
-                value: _FilterType.equalTo,
-                child: Text(_getFilterTranslation(context, _FilterType.equalTo)),
-              ),
-              DropdownMenuItem(
-                value: _FilterType.between,
-                child: Text(_getFilterTranslation(context, _FilterType.between)),
-              ),
-            ],
+            items: _FilterType.values
+                .map(
+                  (type) => DropdownMenuItem(
+                    value: type,
+                    child: Text(_getFilterTranslation(context, type)),
+                  ),
+                )
+                .toList(),
           ),
         ),
         editWidget
@@ -175,7 +160,7 @@ class _NumLogFilterForm2State extends State<NumLogFilterForm2> {
 class NumInBetweenFilterForm extends StatefulWidget {
   const NumInBetweenFilterForm({Key? key, required this.controller}) : super(key: key);
 
-  final ValueEitherController<Option<ValueFilter>> controller;
+  final ValueEitherController<ValueFilter> controller;
 
   @override
   _NumInBetweenFilterFormState createState() => _NumInBetweenFilterFormState();
@@ -189,17 +174,6 @@ class _NumInBetweenFilterFormState extends State<NumInBetweenFilterForm> {
 
   late final TextEditingController _greaterThanController;
   late final TextEditingController _lessThanController;
-
-  bool _isValid(String greaterThan, String lessThan) {
-    int? greaterThanVal = int.tryParse(greaterThan);
-    int? lessThanVal = int.tryParse(lessThan);
-
-    if (greaterThanVal != null && lessThanVal != null) {
-      return greaterThanVal >= lessThanVal;
-    }
-
-    return true;
-  }
 
   void _textEditingListener() {
     int? greaterThanVal = int.tryParse(_greaterThanController.text);
@@ -228,8 +202,11 @@ class _NumInBetweenFilterFormState extends State<NumInBetweenFilterForm> {
       });
     }
 
-    widget.controller
-        .setRightValue(Option.of(NumFilterOutNotInBetween(lessThanVal, greaterThanVal)));
+    if (_errorText != null) {
+      widget.controller.setErrorValue(_errorText!);
+    } else {
+      widget.controller.setRightValue(NumFilterOutNotInBetween(lessThanVal, greaterThanVal));
+    }
 
     if (_errorText != null || _greaterThanError != null || _lessThanError != null) {
       setState(() {
@@ -249,10 +226,7 @@ class _NumInBetweenFilterFormState extends State<NumInBetweenFilterForm> {
     if (widget.controller.isSetUp) {
       final filter = widget.controller.value.fold(
         (l) => null,
-        (r) => r.match(
-          (some) => some,
-          () => null,
-        ),
+        (r) => r,
       );
       if (filter != null) {
         greaterThanText = (filter as NumFilterOutNotInBetween).min.toString();

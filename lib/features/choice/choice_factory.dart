@@ -21,7 +21,7 @@ class ChoiceFactory extends BaseLoggableFactory<String> {
       map,
       generalMapper: ChoiceProperties.fromJson,
       mainCardMapper: EmptyProperty.fromMap,
-      aggregationMapper: EmptyProperty.fromMap,
+      aggregationMapper: EmptyAggregationConfig.fromMap,
     );
   }
 
@@ -30,6 +30,9 @@ class ChoiceFactory extends BaseLoggableFactory<String> {
       MainRepository repository, Loggable loggable) {
     return ChoiceLoggableController(loggable: loggable, repository: repository);
   }
+
+  @override
+  MappableObject generalConfigFromMap(Map<String, dynamic> map) => ChoiceProperties.fromJson(map);
 
   @override
   MappableObject createDefaultProperties() {

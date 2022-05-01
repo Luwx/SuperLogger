@@ -20,9 +20,12 @@ class NumberFactory extends BaseLoggableFactory<double> {
       map,
       generalMapper: NumberProperties.fromJson,
       mainCardMapper: EmptyProperty.fromMap,
-      aggregationMapper: EmptyProperty.fromMap,
+      aggregationMapper: EmptyAggregationConfig.fromMap,
     );
   }
+
+  @override
+  MappableObject generalConfigFromMap(Map<String, dynamic> map) => NumberProperties.fromJson(map);
 
   @override
   LoggableController createLoggableController(MainRepository repository, Loggable loggable) {

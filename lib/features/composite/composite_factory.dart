@@ -24,7 +24,7 @@ class CompositeFactory extends BaseLoggableFactory<CompositeLog> {
       map,
       generalMapper: CompositeProperties.fromMap,
       mainCardMapper: EmptyProperty.fromMap,
-      aggregationMapper: EmptyProperty.fromMap,
+      aggregationMapper: EmptyAggregationConfig.fromMap,
     );
   }
 
@@ -33,6 +33,9 @@ class CompositeFactory extends BaseLoggableFactory<CompositeLog> {
       MainRepository repository, Loggable loggable) {
     return CompositeLoggableController(repository, loggable);
   }
+
+  @override
+  MappableObject generalConfigFromMap(Map<String, dynamic> map) => CompositeProperties.fromMap(map);
 
   @override
   MappableObject createDefaultProperties() {

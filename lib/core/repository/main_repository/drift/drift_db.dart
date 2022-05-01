@@ -267,8 +267,21 @@ class LogEntryDao extends DatabaseAccessor<AppDatabase> with _$LogEntryDaoMixin 
     await update(logs).replace(log);
   }
 
-  Future<List<LogEntry>> getAllLogs(String loggableId) async {
-    return (select(logs)..where((tbl) => tbl.loggableId.equals(loggableId))).get();
+  Future<List<LogEntry>> getAllLogs(String loggableId, {String? maxDate, String? minDate}) async {
+    final query = select(logs);
+    query.where((tbl) => tbl.loggableId.equals(loggableId));
+    if (maxDate != null && minDate != null) {
+      if (maxDate == minDate) {
+        query.where((tbl) => tbl.date.equals(maxDate));
+      } else {
+        query.where((tbl) => tbl.date.isBetweenValues(minDate, maxDate));
+      }
+    } else if (maxDate != null) {
+      query.where((tbl) => tbl.date.isSmallerOrEqualValue(maxDate));
+    } else if (minDate != null) {
+      query.where((tbl) => tbl.date.isBiggerOrEqualValue(minDate));
+    }
+    return query.get();
   }
 
   Future<void> deleteById(String id) async {
@@ -281,7 +294,11 @@ class LogEntryDao extends DatabaseAccessor<AppDatabase> with _$LogEntryDaoMixin 
     query.where((tbl) => tbl.loggableId.equals(loggableId));
 
     if (maxDate != null && minDate != null) {
-      query.where((tbl) => tbl.date.isBetweenValues(minDate, maxDate));
+      if (maxDate == minDate) {
+        query.where((tbl) => tbl.date.equals(maxDate));
+      } else {
+        query.where((tbl) => tbl.date.isBetweenValues(minDate, maxDate));
+      }
     } else if (maxDate != null) {
       query.where((tbl) => tbl.date.isSmallerOrEqualValue(maxDate));
     } else if (minDate != null) {

@@ -128,7 +128,7 @@ class CreateLoggableScreen extends HookWidget {
         loggableConfig: LoggableProperties(
           generalConfig: loggableProperties,
           mainCardConfig: const EmptyProperty(),
-          aggregationConfig: const EmptyProperty(),
+          aggregationConfig: EmptyAggregationConfig(),
         ),
       );
 

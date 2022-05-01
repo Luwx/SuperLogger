@@ -23,7 +23,7 @@ class CounterFactory extends BaseLoggableFactory<int> {
       map,
       generalMapper: CounterProperties.fromJson,
       mainCardMapper: EmptyProperty.fromMap,
-      aggregationMapper: EmptyProperty.fromMap,
+      aggregationMapper: EmptyAggregationConfig.fromMap,
     );
   }
 
@@ -45,6 +45,9 @@ class CounterFactory extends BaseLoggableFactory<int> {
   LoggableController createLoggableController(MainRepository repository, Loggable loggable) {
     return CounterLoggableController(repository, loggable);
   }
+
+  @override
+  MappableObject generalConfigFromMap(Map<String, dynamic> map) => CounterProperties.fromJson(map);
 
   @override
   MappableObject createDefaultProperties() {

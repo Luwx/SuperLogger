@@ -10,6 +10,7 @@ import 'package:super_logger/utils/extensions.dart';
 part 'loggable.freezed.dart';
 
 typedef MappableMapper = MappableObject Function(Map<String, dynamic>);
+typedef AggregationMapper = AggregationConfig Function(Map<String, dynamic>);
 
 @freezed
 class Loggable with _$Loggable {
@@ -41,7 +42,7 @@ class Loggable with _$Loggable {
     Map<String, dynamic> json, {
     required MappableMapper generalMapper,
     required MappableMapper mainCardMapper,
-    required MappableMapper aggregationMapper,
+    required AggregationMapper aggregationMapper,
   }) {
     return Loggable(
       loggableSettings: LoggableSettings.fromJson(json['loggableSettings']),
@@ -73,7 +74,7 @@ class LoggableProperties {
   final MappableObject mainCardConfig;
 
   //
-  final MappableObject aggregationConfig;
+  final AggregationConfig aggregationConfig;
 
   LoggableProperties({
     required this.generalConfig,
@@ -92,7 +93,7 @@ class LoggableProperties {
   factory LoggableProperties.fromJson(Map<String, dynamic> json,
       {required MappableMapper generalMapper,
       required MappableMapper mainCardMapper,
-      required MappableMapper aggregationMapper}) {
+      required AggregationMapper aggregationMapper}) {
     return LoggableProperties(
       generalConfig: generalMapper(json['generalConfig']),
       mainCardConfig: mainCardMapper(json['mainCardConfig']),
@@ -103,7 +104,7 @@ class LoggableProperties {
   LoggableProperties copyWith({
     MappableObject? generalConfig,
     MappableObject? mainCardConfig,
-    MappableObject? aggregationConfig,
+    AggregationConfig? aggregationConfig,
   }) {
     return LoggableProperties(
       generalConfig: generalConfig ?? this.generalConfig,
@@ -132,4 +133,20 @@ class LoggableProperties {
 
 extension IsNew on Loggable {
   bool get isNew => DateTime.now().difference(creationDate) < const Duration(minutes: 2);
+}
+
+abstract class AggregationConfig implements MappableObject {
+  bool get hasAggregations;
+}
+
+class EmptyAggregationConfig implements AggregationConfig {
+  @override
+  bool get hasAggregations => false;
+  @override
+  Map<String, dynamic> toJson() {
+    return {};
+  }
+  static EmptyAggregationConfig fromMap(Map<String, dynamic> map) {
+    return EmptyAggregationConfig();
+  }
 }

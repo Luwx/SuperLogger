@@ -46,16 +46,19 @@ class LoggableForComposite with _$LoggableForComposite implements MappableObject
 
   factory LoggableForComposite.fromJson(Map<String, dynamic> json) {
     // the loggable properties mapper will be automatically inserted from here
-    final loggable = locator.get<MainFactory>().loggableFromMap(json);
+    final type = LoggableTypeHelper.fromString(json['type']);
+    final properties = locator
+        .get<MainFactory>()
+        .generalConfigFromMap(json['properties'], type);
     return LoggableForComposite(
       isArrayable: json['isArrayable'],
       isHiddenByDefault: json['isHiddenByDefault'],
       isDismissible: json['isDismissible'],
       hideTitle: json['hideTitle'],
-      type: LoggableTypeHelper.fromString(json['type']),
+      type: type,
       title: json['title'],
       id: json['id'],
-      properties: json['properties'],
+      properties: properties,
     );
   }
 }

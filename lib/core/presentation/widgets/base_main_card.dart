@@ -13,6 +13,7 @@ import 'package:super_logger/core/models/datelog.dart';
 import 'package:super_logger/core/presentation/screens/loggable_details/loggable_details_screen.dart';
 import 'package:super_logger/core/presentation/screens/create_loggable/create_loggable_screen.dart';
 import 'package:super_logger/core/presentation/screens/home/widgets/card_date_list.dart';
+import 'package:super_logger/core/presentation/widgets/animated_cross_fade_no_clip.dart';
 import 'package:super_logger/core/presentation/widgets/value_shimmer.dart';
 import 'dart:math' as math;
 
@@ -381,7 +382,19 @@ class BaseMainCard extends HookConsumerWidget {
                                             });
                                           }
 
-                                          return AnimatedCrossFade(
+                                          // if ((snapshot.connectionState ==
+                                          //             ConnectionState.waiting) ==
+                                          //         false &&
+                                          //     snapshot.data != null &&
+                                          //     snapshot.data!.logs.isNotEmpty) {
+                                          //   return cardValue(
+                                          //     snapshot.data!,
+                                          //     loggableController,
+                                          //     state == CardState.selected,
+                                          //   );
+                                          // }
+
+                                          return AnimatedCrossFadeNoClip(
                                             firstChild: ValueShimmer(
                                               height: loggableController.loggable.type ==
                                                       LoggableType.composite

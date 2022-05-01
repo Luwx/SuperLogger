@@ -2,6 +2,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:super_logger/features/number/models/number_properties.dart';
+import 'package:super_logger/utils/number_reg_exp_helper.dart';
 import 'package:super_logger/utils/value_controller.dart';
 
 import 'super_slider.dart';
@@ -40,27 +41,6 @@ class _NumberTextFieldState extends State<NumberTextField> {
   final TextEditingController _newController = TextEditingController();
 
   late String _hintText;
-
-  final RegExp _signedInt = RegExp(r'^\d{0,9}');
-  final RegExp _unsignedInt = RegExp(r'^-?\d{0,9}');
-  final RegExp _signedFractional = RegExp(r'^\d{0,6}\.?\d{0,3}');
-  final RegExp _unsignedFractional = RegExp(r'^-?\d{0,6}\.?\d{0,3}');
-
-  RegExp _inputRegex(bool positiveOnly, bool allowDecimal) {
-    if (positiveOnly) {
-      if (allowDecimal) {
-        return _signedFractional;
-      } else {
-        return _signedInt;
-      }
-    } else {
-      if (allowDecimal) {
-        return _unsignedFractional;
-      } else {
-        return _unsignedInt;
-      }
-    }
-  }
 
   String _generateHintText() {
     String hintText = "";
@@ -187,11 +167,10 @@ class _NumberTextFieldState extends State<NumberTextField> {
       keyboardType: const TextInputType.numberWithOptions(decimal: false, signed: true),
       inputFormatters: <TextInputFormatter>[
         FilteringTextInputFormatter.allow(
-          _inputRegex(
-              (widget.valueProperties.min != null && widget.valueProperties.min! >= 0)
-                  ? true
-                  : false,
-              widget.valueProperties.allowDecimal),
+          NumberRegExpHelper.inputRegex(
+            (widget.valueProperties.min != null && widget.valueProperties.min! >= 0) ? false : true,
+            widget.valueProperties.allowDecimal,
+          ),
         ),
       ],
       onChanged: (String s) {

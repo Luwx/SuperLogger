@@ -21,7 +21,7 @@ class AudioFactory extends BaseLoggableFactory<AudioLog> {
       map,
       generalMapper: AudioProperties.fromJson,
       mainCardMapper: EmptyProperty.fromMap,
-      aggregationMapper: EmptyProperty.fromMap,
+      aggregationMapper: EmptyAggregationConfig.fromMap,
     );
   }
 
@@ -35,6 +35,9 @@ class AudioFactory extends BaseLoggableFactory<AudioLog> {
   MappableObject createDefaultProperties() {
     return AudioProperties(o1: "o1");
   }
+
+  @override
+  MappableObject generalConfigFromMap(Map<String, dynamic> map) => AudioProperties.fromJson(map);
 
   @override
   ValueFromMap<AudioLog>? entryValueFromMap() {

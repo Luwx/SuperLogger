@@ -33,9 +33,10 @@ abstract class LoggableFactory<T> {
   ValueToMap? entryValueToMap();
   ValueFromMap<T>? entryValueFromMap();
 
-  //DateLog dateLogFromMap(Map<String, dynamic> map);
-
   Loggable loggableFromMap(Map<String, dynamic> map);
+
+  MappableObject generalConfigFromMap(Map<String, dynamic> map);
+
   Map<String, dynamic> logToMap(Log log);
   DateLog createDateLog(String date);
   Log logFromMap(Map<String, dynamic> map);
@@ -56,7 +57,7 @@ abstract class BaseLoggableFactory<T> implements LoggableFactory<T> {
   ValueEitherController createValueController() {
     return ValueEitherController<T>();
   }
-  
+
   @override
   Map<String, dynamic> logToMap(Log log) {
     return log.toJson(entryValueToMap());
@@ -77,5 +78,4 @@ abstract class BaseLoggableFactory<T> implements LoggableFactory<T> {
   DateLog createDateLog(String date) {
     return DateLog<int>(date: date, logs: []);
   }
-
 }

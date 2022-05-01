@@ -21,7 +21,7 @@ class ColorFactory extends BaseLoggableFactory<ColorLog> {
       map,
       generalMapper: ColorProperties.fromJson,
       mainCardMapper: EmptyProperty.fromMap,
-      aggregationMapper: EmptyProperty.fromMap,
+      aggregationMapper: EmptyAggregationConfig.fromMap,
     );
   }
 
@@ -30,6 +30,9 @@ class ColorFactory extends BaseLoggableFactory<ColorLog> {
       MainRepository repository, Loggable loggable) {
     return ColorLoggableController(loggable: loggable, repository: repository);
   }
+
+  @override
+  MappableObject generalConfigFromMap(Map<String, dynamic> map) => ColorProperties.fromJson(map);
 
   @override
   MappableObject createDefaultProperties() {

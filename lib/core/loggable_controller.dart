@@ -198,8 +198,8 @@ class LoggableController<T extends Object> extends ChangeNotifier {
     return repository.getDateLog<T>(loggable, date);
   }
 
-  Future<List<Log>> getAllLogs() async {
-    return repository.getLogs<T>(loggable);
+  Future<List<Log>> getAllLogs({NullableDateLimits dateLimits = const NullableDateLimits()}) async {
+    return repository.getLogs<T>(loggable, dateLimits: dateLimits);
   }
 
   //--------------

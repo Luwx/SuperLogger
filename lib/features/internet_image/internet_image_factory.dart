@@ -21,7 +21,7 @@ class InternetImageFactory extends BaseLoggableFactory<InternetImageLog> {
       map,
       generalMapper: InternetImageProperties.fromJson,
       mainCardMapper: EmptyProperty.fromMap,
-      aggregationMapper: EmptyProperty.fromMap,
+      aggregationMapper: EmptyAggregationConfig.fromMap,
     );
   }
 
@@ -30,6 +30,9 @@ class InternetImageFactory extends BaseLoggableFactory<InternetImageLog> {
       MainRepository repository, Loggable loggable) {
     return InternetImageLoggableController(loggable: loggable, repository: repository);
   }
+
+  @override
+  MappableObject generalConfigFromMap(Map<String, dynamic> map) => InternetImageProperties.fromJson(map);
 
   @override
   MappableObject createDefaultProperties() {

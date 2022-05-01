@@ -122,6 +122,6 @@ class NumberUiHelper extends BaseLoggableUiHelper {
 
   @override
   Widget getLogFilterForm(LogValueFilterController controller, MappableObject properties) {
-    return NumLogFilterForm2(controller: controller);
+    return NumLogFilterForm(controller: controller);
   }
 }

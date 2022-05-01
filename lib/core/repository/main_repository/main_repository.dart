@@ -60,7 +60,10 @@ abstract class MainRepository {
   });
 
   // Get
-  Future<List<Log<T>>> getLogs<T>(Loggable loggable);
+  Future<List<Log<T>>> getLogs<T>(
+    Loggable loggable, {
+    NullableDateLimits dateLimits = const NullableDateLimits(),
+  });
   Future<DateLog<T>?> getDateLog<T>(Loggable loggable, String date);
   // Future<void> updateDateLogProperties(
   //     String loggableId, String date, Map<String, dynamic> properties);
